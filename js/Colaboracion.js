@@ -1,0 +1,140 @@
+class Colaboracion {
+    constructor(x, y, w, h) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.figuraArrastrada = null;
+        this.progresoAtraccion = 0;
+        this.crearComposicion();
+    }
+
+    crearComposicion() {
+        this.figuras = [];
+        
+        let posicionesFinales = [
+            { targetX: 0.50, targetY: 0.50, tipo: "circulo" },
+            { targetX: 0.38, targetY: 0.38, tipo: "cuadrado" },
+            { targetX: 0.62, targetY: 0.38, tipo: "cuadrado" },
+            { targetX: 0.38, targetY: 0.62, tipo: "cuadrado" },
+            { targetX: 0.62, targetY: 0.62, tipo: "cuadrado" }
+        ];
+
+        for (let i = 0; i < 5; i++) {
+            let xRandom = random(0.15, 0.85);
+            let yRandom = random(0.20, 0.80);
+
+            this.figuras.push({
+                x: xRandom,
+                y: yRandom,
+                origenX: xRandom,
+                origenY: yRandom,
+                targetX: posicionesFinales[i].targetX,
+                targetY: posicionesFinales[i].targetY,
+                tipo: posicionesFinales[i].tipo,
+                tam: 42,
+                fase: random(TWO_PI)
+            });
+        }
+    }
+
+    update() {
+        if (mouseIsPressed) {
+            if (!this.figuraArrastrada) {
+                for (let f of this.figuras) {
+                    let fx = this.x + f.x * this.w;
+                    let fy = this.y + f.y * this.h;
+                    if (dist(mouseX, mouseY, fx, fy) < f.tam / 2) {
+                        this.figuraArrastrada = f;
+                        break;
+                    }
+                }
+            }
+            if (this.figuraArrastrada) {
+                let nuevoX = constrain(mouseX, this.x, this.x + this.w);
+                let nuevoY = constrain(mouseY, this.y, this.y + this.h);
+                this.figuraArrastrada.x = (nuevoX - this.x) / this.w;
+                this.figuraArrastrada.y = (nuevoY - this.y) / this.h;
+            }
+        } else {
+            this.figuraArrastrada = null;
+        }
+
+        let targetAtraccion = this.figuraArrastrada ? 1.0 : 0.0;
+        this.progresoAtraccion = lerp(this.progresoAtraccion, targetAtraccion, 0.05);
+
+        for (let f of this.figuras) {
+            if (f === this.figuraArrastrada) {
+                f.origenX = f.x;
+                f.origenY = f.y;
+                continue;
+            }
+
+            let destinoX = lerp(f.origenX, f.targetX, this.progresoAtraccion);
+            let destinoY = lerp(f.origenY, f.targetY, this.progresoAtraccion);
+
+            f.x = lerp(f.x, destinoX, 0.08);
+            f.y = lerp(f.y, destinoY, 0.08);
+        }
+    }
+
+    dibujarFigura(f) {
+        let px = this.x + f.x * this.w;
+        let py = this.y + f.y * this.h;
+
+        let cRosa = color(255, 0, 120);
+        let cVioleta = color(180, 0, 255);
+
+        let flotar = (1 - this.progresoAtraccion) * 2;
+        let offsetReposoX = sin(frameCount * 0.03 + f.fase) * flotar;
+        let offsetReposoY = cos(frameCount * 0.025 + f.fase) * flotar;
+
+        push();
+        translate(px + offsetReposoX, py + offsetReposoY);
+        noStroke();
+
+        if (f.tipo === "circulo") {
+            fill(cRosa);
+            circle(0, 0, f.tam);
+        } else if (f.tipo === "cuadrado") {
+            fill(cVioleta);
+            rectMode(CENTER);
+            square(0, 0, f.tam);
+        }
+        pop();
+    }
+
+    draw() {
+        this.update();
+
+        noStroke();
+        fill(245);
+        rect(this.x, this.y, this.w, this.h);
+
+        if (this.progresoAtraccion > 0.05) {
+            push();
+            let cNaranja = color(255, 140, 0);
+            stroke(cNaranja);
+            strokeWeight(3.5);
+            noFill();
+
+            let xMin = this.x + 0.30 * this.w;
+            let xMax = this.x + 0.70 * this.w;
+            let yMin = this.y + 0.30 * this.h;
+            let yMax = this.y + 0.70 * this.h;
+
+            let extX = (xMax - xMin) * (1 - this.progresoAtraccion) * 0.3;
+            let extY = (yMax - yMin) * (1 - this.progresoAtraccion) * 0.3;
+
+            line(xMin + extX, yMin, xMax - extX, yMin);
+            line(xMin + extX, yMax, xMax - extX, yMax);
+            line(xMin, yMin + extY, xMin, yMax - extY);
+            line(xMax, yMin + extY, xMax, yMax - extY);
+            pop();
+        }
+
+        for (let f of this.figuras) {
+            this.dibujarFigura(f);
+        }
+    }
+}
