@@ -24,66 +24,74 @@ class Memoria {
         let naranja = color(255, 140, 0);
 
         // Posiciones
+this.figuras = [
 
-        this.figuras = [
+    // Círculos arriba
+    {tipo:"circulo",   x:0.40, y:0.25, tam:50, c:rosa},
+    {tipo:"circulo",   x:0.60, y:0.25, tam:50, c:rosa},
 
-            {tipo:"triangulo", x:0.40, y:0.23, tam:45, c:azul},
-            {tipo:"triangulo", x:0.60, y:0.23, tam:45, c:azul},
+    // Triángulos más abiertos
+    {tipo:"triangulo", x:0.25, y:0.50, tam:45, c:azul},
+    {tipo:"triangulo", x:0.75, y:0.50, tam:45, c:azul},
 
-            {tipo:"triangulo", x:0.28, y:0.47, tam:30, c:azul},
-            {tipo:"triangulo", x:0.72, y:0.47, tam:30, c:azul},
+    // Cuadrados abajo
+    {tipo:"cuadrado",  x:0.40, y:0.75, tam:38, c:violeta},
+    {tipo:"cuadrado",  x:0.60, y:0.75, tam:38, c:violeta}
 
-            {tipo:"circulo", x:0.50, y:0.50, tam:60, c:rosa},
-            {tipo:"circulo", x:0.38, y:0.50, tam:35, c:rosa},
-            {tipo:"circulo", x:0.63, y:0.50, tam:35, c:rosa},
+];
 
-            {tipo:"cuadrado", x:0.28, y:0.67, tam:34, c:violeta},
-            {tipo:"cuadrado", x:0.42, y:0.76, tam:40, c:violeta},
-            {tipo:"cuadrado", x:0.58, y:0.76, tam:40, c:violeta},
-            {tipo:"cuadrado", x:0.70, y:0.67, tam:34, c:violeta},
+for(let f of this.figuras){
 
-            {tipo:"linea", x:0.50, y:0.09, tam:50, c:naranja},
-            {tipo:"linea", x:0.50, y:0.88, tam:50, c:naranja}
+    f.alpha = 255;
+    f.escala = 1;
 
-        ];
+    f.ultimoClick = millis();
 
-        // Variables de animación
-
-        for(let f of this.figuras){
-
-          f.alpha = 80;
-        //  f.memoria = 8;
-
-            f.escala=1;
-
-
-        }
-
+}
     }
 
-   update(){
+update(){
+
+    let tiempoEspera = 3000; // 3 segundos
 
     for(let f of this.figuras){
 
-        let px = this.x + f.x * this.w;
-        let py = this.y + f.y * this.h;
+        if(millis() - f.ultimoClick > tiempoEspera){
 
-        let d = dist(mouseX, mouseY, px, py);
+            // Baja lentamente cuando no interactuás
+            f.alpha = lerp(f.alpha,20,0.03);
 
-        if(d <90){
+        }
 
-            // Se revela completamente
-            f.alpha = lerp(f.alpha, 255, 0.18);
+        // ===== LATIDO =====
 
-            // Crece un poco
-            f.escala = lerp(f.escala, 1.12, 0.12);
+        let pulso = (sin(frameCount * 0.05) + 1) / 2;
 
-        }else{
+f.escala = 1 + pulso * 0.05;
 
-            // Vuelve lentamente a casi desaparecer
-         f.alpha = lerp(f.alpha, 20, 0.02);
-            // Recupera tamaño normal
-            f.escala = lerp(f.escala, 1, 0.08);
+    }
+
+}
+
+mousePressed(){
+
+    for(let f of this.figuras){
+
+        let px = this.x + f.x*this.w;
+        let py = this.y + f.y*this.h;
+
+        let d = dist(mouseX,mouseY,px,py);
+
+        if(d < f.tam*0.7){
+
+            // Reinicia el temporizador
+            f.ultimoClick = millis();
+
+            // Cada click suma intensidad
+            f.alpha += 25;
+
+            // No puede pasar de 255
+            f.alpha = constrain(f.alpha,20,255);
 
         }
 

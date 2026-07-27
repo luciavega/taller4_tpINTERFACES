@@ -11,10 +11,10 @@ this.crearGrilla();
 crearGrilla(){
 
 let margen=25;
+let espacio=45;
 
-let w=(width-margen*4)/3;
-
-let h=(height-margen*4)/3;
+let w=(width-margen*2-espacio*2)/3;
+let h=(height-margen*2-espacio*2)/3;
 
 this.paneles=[
 
@@ -26,14 +26,14 @@ h
 ),
 
 new Herencia(
-margen*2+w,
+margen+w+espacio,
 margen,
 w,
 h
 ),
 
 new Caducidad(
-margen*3+w*2,
+margen+(w+espacio)*2,
 margen,
 w,
 h
@@ -41,42 +41,42 @@ h
 
 new Identidad(
 margen,
-margen*2+h,
+margen+h+espacio,
 w,
 h
 ),
 
 new Empatia(
-margen*2+w,
-margen*2+h,
+margen+w+espacio,
+margen+h+espacio,
 w,
 h
 ),
 
 new Colaboracion(
-margen*3+w*2,
-margen*2+h,
+margen+(w+espacio)*2,
+margen+h+espacio,
 w,
 h
 ),
 
 new Incertidumbre(
 margen,
-margen*3+h*2,
+margen+(h+espacio)*2,
 w,
 h
 ),
 
 new Ansiedad(
-margen*2+w,
-margen*3+h*2,
+margen+w+espacio,
+margen+(h+espacio)*2,
 w,
 h
 ),
 
 new Expectativa(
-margen*3+w*2,
-margen*3+h*2,
+margen+(w+espacio)*2,
+margen+(h+espacio)*2,
 w,
 h
 )

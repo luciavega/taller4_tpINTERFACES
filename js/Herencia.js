@@ -1,18 +1,20 @@
 class Herencia {
 
-    constructor(x, y, w, h) {
+    constructor(x,y,w,h){
 
-        this.x = x;
-        this.y = y;
-        this.w = w;
-        this.h = h;
+    this.x=x;
+    this.y=y;
+    this.w=w;
+    this.h=h;
 
-        this.activado = false;
-        this.frameInicio = 0;
+    this.estado = 0;
+    this.frameInicio = 0;
 
-        this.crearComposicion();
+    this.movimiento = false;
 
-    }
+    this.crearComposicion();
+
+}
 
     crearComposicion() {
 
@@ -25,151 +27,186 @@ class Herencia {
 
             // figura "padre" ??
             {
-                tipo:"triangulo",
-                x:0.50,
-                y:0.68,
-                tam:85,
-                c:azul,
-                visible:true,
-                alpha:255,
-                escala:1,
-                delay:0
-            },
-
-            // figuras hijas(?)
-            {
-                tipo:"circulo",
-                x:0.33,
-                y:0.46,
-                tam:60,
-                c:rosa,
-                visible:false,
-                alpha:0,
-                escala:0,
-                delay:25
-            },
+ tipo:"triangulo",
+ x:0.50,
+ y:0.68,
+ tam:85,
+ c:azul,
+ visible:true,
+ alpha:255,
+ escala:1,
+ padre:true
+},
 
             {
-                tipo:"circulo",
-                x:0.67,
-                y:0.46,
-                tam:60,
-                c:rosa,
-                visible:false,
-                alpha:0,
-                escala:0,
-                delay:25
-            },
+ tipo:"circulo",
+ x:0.33,
+ y:0.46,
+ tam:60,
+ c:rosa,
+ visible:false,
+ alpha:0,
+ escala:0,
+ hijo:true
+},
 
-            // figuras hijas x2 
-            {
-                tipo:"cuadrado",
-                x:0.22,
-                y:0.18,
-                tam:36,
-                c:violeta,
-                visible:false,
-                alpha:0,
-                escala:0,
-                delay:55
-            },
+{
+ tipo:"circulo",
+ x:0.67,
+ y:0.46,
+ tam:60,
+ c:rosa,
+ visible:false,
+ alpha:0,
+ escala:0,
+ hijo:true
+},
+// cuadrados superiores
+{
+    tipo:"cuadrado",
+    x:0.22,
+    y:0.10,
+    tam:36,
+    c:violeta,
+    visible:false,
+    alpha:0,
+    escala:0,
+    delay:55
+},
 
-            {
-                tipo:"cuadrado",
-                x:0.38,
-                y:0.18,
-                tam:36,
-                c:violeta,
-                visible:false,
-                alpha:0,
-                escala:0,
-                delay:55
-            },
+{
+    tipo:"cuadrado",
+    x:0.38,
+    y:0.10,
+    tam:36,
+    c:violeta,
+    visible:false,
+    alpha:0,
+    escala:0,
+    delay:55
+},
 
-            {
-                tipo:"cuadrado",
-                x:0.62,
-                y:0.18,
-                tam:36,
-                c:violeta,
-                visible:false,
-                alpha:0,
-                escala:0,
-                delay:55
-            },
+// cuadrados hijos del círculo izquierdo
+{
+    tipo:"cuadrado",
+    x:0.25,
+    y:0.18,
+    tam:36,
+    c:violeta,
+    visible:false,
+    alpha:0,
+    escala:0,
+    nieto:true
+},
 
-            {
-                tipo:"cuadrado",
-                x:0.78,
-                y:0.18,
-                tam:36,
-                c:violeta,
-                visible:false,
-                alpha:0,
-                escala:0,
-                delay:55
-            },
+{
+    tipo:"cuadrado",
+    x:0.41,
+    y:0.18,
+    tam:36,
+    c:violeta,
+    visible:false,
+    alpha:0,
+    escala:0,
+    nieto:true
+},
 
-            {
-                tipo:"linea",
-                x:0.50,
-                y:0.27,
-                tam:70,
-                c:naranja,
-                visible:true,
-                alpha:255,
-                escala:1
-            },
+// cuadrados hijos del círculo derecho
+{
+    tipo:"cuadrado",
+    x:0.59,
+    y:0.18,
+    tam:36,
+    c:violeta,
+    visible:false,
+    alpha:0,
+    escala:0,
+    nieto:true
+},
 
-            {
-                tipo:"linea",
-                x:0.50,
-                y:0.90,
-                tam:40,
-                c:naranja,
-                visible:true,
-                alpha:255,
-                escala:1
-            }
-
+{
+    tipo:"cuadrado",
+    x:0.75,
+    y:0.18,
+    tam:36,
+    c:violeta,
+    visible:false,
+    alpha:0,
+    escala:0,
+    nieto:true
+},
         ];
 
     }
 
-    update(){
+update(){
 
-        let padre = this.figuras[0];
+    let padre=this.figuras[0];
 
-        let px = this.x + padre.x * this.w;
-        let py = this.y + padre.y * this.h;
+    let px=this.x+padre.x*this.w;
+    let py=this.y+padre.y*this.h;
 
-        if(mouseIsPressed &&
-           dist(mouseX,mouseY,px,py)<60 &&
-           !this.activado){
 
-            this.activado = true;
-            this.frameInicio = frameCount;
+    // latido del triangulo siempre
+    padre.escala = 1 + sin(frameCount*0.08)*0.05;
+
+
+    // click triangulo
+    if(mouseIsPressed &&
+       dist(mouseX,mouseY,px,py)<60){
+
+
+        if(this.estado==0){
+
+            this.estado=1;
+            this.frameInicio=frameCount;
 
         }
 
-        if(this.activado){
+        else if(this.estado==2){
 
-            for(let f of this.figuras){
+            this.movimiento=true;
 
-                if(!f.visible){
+        }
 
-                    if(frameCount - this.frameInicio > f.delay){
+    }
 
-                        f.visible = true;
 
-                    }
+    // aparecen circulos
 
-                }
+    if(this.estado==1){
 
-                if(f.visible){
+        for(let f of this.figuras){
 
-                    f.alpha = lerp(f.alpha,255,0.08);
-                    f.escala = lerp(f.escala,1,0.08);
+            if(f.hijo){
+
+                f.visible=true;
+
+                f.alpha=lerp(f.alpha,255,0.08);
+                f.escala=lerp(f.escala,1,0.08);
+
+
+                // latido círculos
+                f.escala = 1 + sin(frameCount*0.08)*0.04;
+
+            }
+
+        }
+
+
+        // esperar click en circulos
+        for(let f of this.figuras){
+
+            if(f.hijo){
+
+                let fx=this.x+f.x*this.w;
+                let fy=this.y+f.y*this.h;
+
+
+                if(mouseIsPressed &&
+                   dist(mouseX,mouseY,fx,fy)<40){
+
+                    this.estado=2;
 
                 }
 
@@ -178,23 +215,53 @@ class Herencia {
         }
 
     }
+
+
+
+    // aparecen cuadrados
+
+    if(this.estado==2){
+
+        for(let f of this.figuras){
+
+            if(f.nieto){
+
+                f.visible=true;
+
+                f.alpha=lerp(f.alpha,255,0.08);
+                f.escala=lerp(f.escala,1,0.08);
+
+            }
+
+        }
+
+    }
+
+
+}
 
     dibujarFigura(f){
 
         let px=this.x+f.x*this.w;
         let py=this.y+f.y*this.h;
 
-        let mover=0;
+       let moverX=0;
+let moverY=0;
 
-        if(this.activado){
 
-            mover=sin(frameCount*0.03)*6;
+if(this.movimiento){
 
-        }
+    let movimientoPadre = sin(frameCount*0.03)*20;
+
+
+    moverX = movimientoPadre;
+    moverY = cos(frameCount*0.03)*10;
+
+}
 
         push();
 
-        translate(px+mover,py);
+       translate(px+moverX, py+moverY);
 
         scale(f.escala);
 
