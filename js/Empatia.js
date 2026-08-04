@@ -52,24 +52,17 @@ class Empatia {
         }
 
         for (let f of this.figuras) {
-            let fRealX = this.x + f.x * this.w;
-            let fRealY = this.y + f.y * this.h;
-            let cercaDeOpuesto = false;
+            const umbral = 0.5;
+            const margen = 0.03;
+            let targetSync = 0;
 
-            for (let otro of this.figuras) {
-                if (f.grupo !== otro.grupo) {
-                    let oRealX = this.x + otro.x * this.w;
-                    let oRealY = this.y + otro.y * this.h;
-
-                    if (dist(fRealX, fRealY, oRealX, oRealY) < 100) {
-                        cercaDeOpuesto = true;
-                        break;
-                    }
-                }
+            if (f.grupo === "circulos" && f.x > umbral + margen) {
+                targetSync = 1;
+            } else if (f.grupo === "triangulos" && f.x < umbral - margen) {
+                targetSync = 1;
             }
 
-            let targetSync = cercaDeOpuesto ? 1 : 0;
-            f.sync = lerp(f.sync, targetSync, 0.07);
+            f.sync = lerp(f.sync, targetSync, 0.08);
         }
     }
 
@@ -90,7 +83,6 @@ class Empatia {
             despX = lerp(patronCirculoX, patronTrianguloX, f.sync);
             despY = lerp(patronCirculoY, patronTrianguloY, f.sync);
         } else {
-         
             despX = lerp(patronTrianguloX, patronCirculoX, f.sync);
             despY = lerp(patronTrianguloY, patronCirculoY, f.sync);
         }
