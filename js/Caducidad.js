@@ -176,6 +176,19 @@ y: fila3 - 30,
 
     update(){
 
+        const dentro = mouseX >= this.x &&
+            mouseX <= this.x + this.w &&
+            mouseY >= this.y &&
+            mouseY <= this.y + this.h;
+
+        if(!dentro){
+            for(let f of this.figuras){
+                f.deterioro = lerp(f.deterioro, 0, 0.03);
+                f.escala = lerp(f.escala, 1, 0.03);
+            }
+            return;
+        }
+
         let mx=mouseX-this.x;
         let my=mouseY-this.y;
 
@@ -206,6 +219,11 @@ y: fila3 - 30,
         this.update();
 
         push();
+
+        drawingContext.save();
+        drawingContext.beginPath();
+        drawingContext.rect(this.x, this.y, this.w, this.h);
+        drawingContext.clip();
 
         translate(this.x,this.y);
 

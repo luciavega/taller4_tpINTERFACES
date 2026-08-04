@@ -75,6 +75,15 @@ f.escala = 1 + pulso * 0.05;
 
 mousePressed(){
 
+    const dentro = mouseX >= this.x &&
+        mouseX <= this.x + this.w &&
+        mouseY >= this.y &&
+        mouseY <= this.y + this.h;
+
+    if(!dentro){
+        return;
+    }
+
     for(let f of this.figuras){
 
         let px = this.x + f.x*this.w;
@@ -189,6 +198,13 @@ mousePressed(){
 
         this.update();
 
+        push();
+
+        drawingContext.save();
+        drawingContext.beginPath();
+        drawingContext.rect(this.x, this.y, this.w, this.h);
+        drawingContext.clip();
+
         // fondo
 
         noStroke();
@@ -227,6 +243,9 @@ mousePressed(){
             this.dibujarFigura(f);
 
         }
+
+        drawingContext.restore();
+        pop();
 
     }
 

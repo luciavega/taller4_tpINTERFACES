@@ -25,7 +25,12 @@ class Empatia {
     }
 
     update() {
-        if (mouseIsPressed) {
+        const dentro = mouseX >= this.x &&
+            mouseX <= this.x + this.w &&
+            mouseY >= this.y &&
+            mouseY <= this.y + this.h;
+
+        if (dentro && mouseIsPressed) {
             if (!this.figuraArrastrada) {
                 for (let f of this.figuras) {
                     let fx = this.x + f.x * this.w;
@@ -111,6 +116,13 @@ class Empatia {
     draw() {
         this.update();
 
+        push();
+
+        drawingContext.save();
+        drawingContext.beginPath();
+        drawingContext.rect(this.x, this.y, this.w, this.h);
+        drawingContext.clip();
+
         noStroke();
         fill(245);
         rect(this.x, this.y, this.w, this.h);
@@ -118,5 +130,8 @@ class Empatia {
         for (let f of this.figuras) {
             this.dibujarFigura(f);
         }
+
+        drawingContext.restore();
+        pop();
     }
 }

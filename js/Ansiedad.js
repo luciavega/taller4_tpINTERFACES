@@ -64,7 +64,11 @@ class Ansiedad {
     }
 
     update() {
-        let targetDisolucion = mouseIsPressed ? 0.15 : 1.0; 
+        const dentro = mouseX >= this.x &&
+            mouseX <= this.x + this.w &&
+            mouseY >= this.y &&
+            mouseY <= this.y + this.h;
+        let targetDisolucion = (dentro && mouseIsPressed) ? 0.15 : 1.0; 
         this.factorDisolucion = lerp(this.factorDisolucion, targetDisolucion, 0.05);
 
         for (let q of this.cuadrados) {
@@ -92,6 +96,11 @@ class Ansiedad {
         this.update();
 
         push();
+
+        drawingContext.save();
+        drawingContext.beginPath();
+        drawingContext.rect(this.x, this.y, this.w, this.h);
+        drawingContext.clip();
         translate(this.x, this.y);
         noStroke();
 
@@ -126,6 +135,7 @@ class Ansiedad {
             pop();
         }
 
+        drawingContext.restore();
         pop();
     }
 }

@@ -46,7 +46,12 @@ class Incertidumbre {
     }
 
     update() {
-        if (mouseIsPressed && !this.mousePresionadoPrevio) {
+        const dentro = mouseX >= this.x &&
+            mouseX <= this.x + this.w &&
+            mouseY >= this.y &&
+            mouseY <= this.y + this.h;
+
+        if (dentro && mouseIsPressed && !this.mousePresionadoPrevio) {
             this.mousePresionadoPrevio = true;
 
             for (let f of this.figuras) {
@@ -127,6 +132,13 @@ class Incertidumbre {
     draw() {
         this.update();
 
+        push();
+
+        drawingContext.save();
+        drawingContext.beginPath();
+        drawingContext.rect(this.x, this.y, this.w, this.h);
+        drawingContext.clip();
+
         noStroke();
         fill(245);
         rect(this.x, this.y, this.w, this.h);
@@ -134,5 +146,8 @@ class Incertidumbre {
         for (let f of this.figuras) {
             this.dibujarFigura(f);
         }
+
+        drawingContext.restore();
+        pop();
     }
 }

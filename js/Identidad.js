@@ -72,10 +72,15 @@ class Identidad {
     }
 
     update() {
+        const dentro = mouseX >= this.x &&
+            mouseX <= this.x + this.w &&
+            mouseY >= this.y &&
+            mouseY <= this.y + this.h;
+
         let px = this.x + this.protagonista.x * this.w;
         let py = this.y + this.protagonista.y * this.h;
 
-        if (mouseIsPressed) {
+        if (dentro && mouseIsPressed) {
             if (!this.arrastrando && dist(mouseX, mouseY, px, py) < this.protagonista.tam / 2) {
                 this.arrastrando = true;
             }
@@ -181,6 +186,13 @@ class Identidad {
     draw() {
         this.update();
 
+        push();
+
+        drawingContext.save();
+        drawingContext.beginPath();
+        drawingContext.rect(this.x, this.y, this.w, this.h);
+        drawingContext.clip();
+
         noStroke();
         fill(245);
         rect(this.x, this.y, this.w, this.h);
@@ -190,5 +202,8 @@ class Identidad {
         }
 
         this.dibujarProtagonista();
+
+        drawingContext.restore();
+        pop();
     }
 }

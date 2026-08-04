@@ -31,7 +31,9 @@ function mousePressed(){
 
     for(let p of sistema.paneles){
 
-        p.mousePressed();
+        if(typeof p.mousePressed === 'function'){
+            p.mousePressed();
+        }
 
     }
 

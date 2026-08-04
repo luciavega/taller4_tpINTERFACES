@@ -11,6 +11,15 @@ class Herencia {
     this.frameInicio = 0;
 
     this.movimiento = false;
+    this.clickAnterior = false;
+    this.dragging = false;
+    this.offsetX = 0;
+    this.offsetY = 0;
+    this.desplazamientoX = 0;
+    this.desplazamientoY = 0;
+    this.followX = 0;
+    this.followY = 0;
+    this.tiempoInactividad = null;
 
     this.crearComposicion();
 
@@ -139,42 +148,78 @@ class Herencia {
 
     }
 
+reset(){
+
+    this.estado = 0;
+    this.dragging = false;
+    this.movimiento = false;
+    this.clickAnterior = false;
+    this.desplazamientoX = 0;
+    this.desplazamientoY = 0;
+    this.followX = 0;
+    this.followY = 0;
+    this.offsetX = 0;
+    this.offsetY = 0;
+    this.tiempoInactividad = null;
+
+    for(let f of this.figuras){
+
+        if(f.padre){
+            f.visible = true;
+            f.alpha = 255;
+            f.escala = 1;
+        }
+        else if(f.hijo){
+            f.visible = false;
+            f.alpha = 0;
+            f.escala = 0;
+            f.followX = 0;
+            f.followY = 0;
+        }
+        else if(f.nieto){
+            f.visible = false;
+            f.alpha = 0;
+            f.escala = 0;
+            f.followX = 0;
+            f.followY = 0;
+        }
+
+    }
+
+}
+
 update(){
+
+    const dentro = mouseX >= this.x &&
+        mouseX <= this.x + this.w &&
+        mouseY >= this.y &&
+        mouseY <= this.y + this.h;
 
     let padre=this.figuras[0];
 
     let px=this.x+padre.x*this.w;
     let py=this.y+padre.y*this.h;
 
+    let clickActual = mouseIsPressed;
 
-    // latido del triangulo siempre
-    padre.escala = 1 + sin(frameCount*0.08)*0.05;
+    if(this.estado==0){
 
+        padre.escala = 1 + sin(frameCount*0.08)*0.05;
 
-    // click triangulo
-    if(mouseIsPressed &&
-       dist(mouseX,mouseY,px,py)<60){
+        if(!this.clickAnterior && clickActual && dentro){
 
-
-        if(this.estado==0){
-
-            this.estado=1;
-            this.frameInicio=frameCount;
-
-        }
-
-        else if(this.estado==2){
-
-            this.movimiento=true;
+            if(dist(mouseX,mouseY,px,py)<60){
+                this.estado=1;
+                this.frameInicio=frameCount;
+            }
 
         }
 
     }
 
-
-    // aparecen circulos
-
     if(this.estado==1){
+
+        padre.escala = 1;
 
         for(let f of this.figuras){
 
@@ -184,29 +229,25 @@ update(){
 
                 f.alpha=lerp(f.alpha,255,0.08);
                 f.escala=lerp(f.escala,1,0.08);
-
-
-                // latido círculos
                 f.escala = 1 + sin(frameCount*0.08)*0.04;
 
             }
 
         }
 
+        if(!this.clickAnterior && clickActual && dentro){
 
-        // esperar click en circulos
-        for(let f of this.figuras){
+            for(let f of this.figuras){
 
-            if(f.hijo){
+                if(f.hijo){
 
-                let fx=this.x+f.x*this.w;
-                let fy=this.y+f.y*this.h;
+                    let fx=this.x+f.x*this.w;
+                    let fy=this.y+f.y*this.h;
 
-
-                if(mouseIsPressed &&
-                   dist(mouseX,mouseY,fx,fy)<40){
-
-                    this.estado=2;
+                    if(dist(mouseX,mouseY,fx,fy)<40){
+                        this.estado=2;
+                        break;
+                    }
 
                 }
 
@@ -216,11 +257,9 @@ update(){
 
     }
 
-
-
-    // aparecen cuadrados
-
     if(this.estado==2){
+
+        padre.escala = 1 + sin(frameCount*0.08)*0.05;
 
         for(let f of this.figuras){
 
@@ -235,8 +274,69 @@ update(){
 
         }
 
+        if(!this.clickAnterior && clickActual && dentro && dist(mouseX,mouseY,px,py)<60){
+            this.estado=3;
+            this.dragging = true;
+            this.offsetX = mouseX - px;
+            this.offsetY = mouseY - py;
+            this.desplazamientoX = 0;
+            this.desplazamientoY = 0;
+        }
+
     }
 
+    if(this.estado==3){
+
+        if(this.dragging && mouseIsPressed && dentro){
+
+            this.desplazamientoX = mouseX - px - this.offsetX;
+            this.desplazamientoY = mouseY - py - this.offsetY;
+            this.tiempoInactividad = null;
+
+        }
+        else if(this.dragging){
+
+            this.desplazamientoX = lerp(this.desplazamientoX,0,0.12);
+            this.desplazamientoY = lerp(this.desplazamientoY,0,0.12);
+
+        }
+
+        if(!mouseIsPressed){
+            this.dragging = false;
+        }
+
+        if(this.dragging){
+            this.tiempoInactividad = null;
+        }
+        else if(this.tiempoInactividad === null){
+            this.tiempoInactividad = millis();
+        }
+        else if(millis() - this.tiempoInactividad >= 2000){
+            this.reset();
+        }
+
+        this.followX = lerp(this.followX, this.desplazamientoX, 0.18);
+        this.followY = lerp(this.followY, this.desplazamientoY, 0.18);
+
+        for(let f of this.figuras){
+
+            if(f.hijo){
+                f.followX = lerp(f.followX || 0, this.followX, 0.13);
+                f.followY = lerp(f.followY || 0, this.followY, 0.13);
+            }
+
+            if(f.nieto){
+                f.followX = lerp(f.followX || 0, this.followX, 0.09);
+                f.followY = lerp(f.followY || 0, this.followY, 0.09);
+            }
+
+        }
+
+        padre.escala = 1;
+
+    }
+
+    this.clickAnterior = clickActual;
 
 }
 
@@ -245,19 +345,23 @@ update(){
         let px=this.x+f.x*this.w;
         let py=this.y+f.y*this.h;
 
-       let moverX=0;
-let moverY=0;
+        let moverX=0;
+        let moverY=0;
 
-
-if(this.movimiento){
-
-    let movimientoPadre = sin(frameCount*0.03)*20;
-
-
-    moverX = movimientoPadre;
-    moverY = cos(frameCount*0.03)*10;
-
-}
+        if(this.estado==3 && this.dragging){
+            if(f.padre){
+                moverX=this.followX;
+                moverY=this.followY;
+            }
+            else if(f.hijo){
+                moverX=f.followX;
+                moverY=f.followY;
+            }
+            else if(f.nieto){
+                moverX=f.followX;
+                moverY=f.followY;
+            }
+        }
 
         push();
 
@@ -335,6 +439,13 @@ if(this.movimiento){
 
         this.update();
 
+        push();
+
+        drawingContext.save();
+        drawingContext.beginPath();
+        drawingContext.rect(this.x, this.y, this.w, this.h);
+        drawingContext.clip();
+
         noStroke();
         fill(240);
 
@@ -354,6 +465,9 @@ if(this.movimiento){
             }
 
         }
+
+        drawingContext.restore();
+        pop();
 
     }
 

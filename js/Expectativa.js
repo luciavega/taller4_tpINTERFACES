@@ -37,7 +37,12 @@ class Expectativa {
     }
 
     update() {
-        if (mouseIsPressed) {
+        const dentro = mouseX >= this.x &&
+            mouseX <= this.x + this.w &&
+            mouseY >= this.y &&
+            mouseY <= this.y + this.h;
+
+        if (dentro && mouseIsPressed) {
             this.progresoInteraccion = lerp(this.progresoInteraccion, 1.0, 0.04);
         } else {
             this.progresoInteraccion = lerp(this.progresoInteraccion, 0.0, 0.08);
@@ -56,6 +61,11 @@ class Expectativa {
         this.update();
 
         push();
+
+        drawingContext.save();
+        drawingContext.beginPath();
+        drawingContext.rect(this.x, this.y, this.w, this.h);
+        drawingContext.clip();
         translate(this.x, this.y);
         
         noStroke();
@@ -123,6 +133,7 @@ class Expectativa {
             centroY + margenEncaje - desalineado
         );
 
+        drawingContext.restore();
         pop();
     }
 }
