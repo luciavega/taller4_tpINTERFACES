@@ -20,6 +20,14 @@ class Colaboracion {
             { targetX: 0.62, targetY: 0.62, tipo: "cuadrado" }
         ];
 
+        // Offsets (en coordenadas normalizadas) para los 4 cuadrados alrededor del círculo
+        this.offsetsByIndex = {
+            1: { dx: -0.12, dy: -0.12 },
+            2: { dx:  0.12, dy: -0.12 },
+            3: { dx: -0.12, dy:  0.12 },
+            4: { dx:  0.12, dy:  0.12 }
+        };
+
         for (let i = 0; i < 5; i++) {
             let xRandom = random(0.15, 0.85);
             let yRandom = random(0.20, 0.80);
@@ -32,6 +40,7 @@ class Colaboracion {
                 targetX: posicionesFinales[i].targetX,
                 targetY: posicionesFinales[i].targetY,
                 tipo: posicionesFinales[i].tipo,
+                index: i,
                 tam: 42,
                 fase: random(TWO_PI)
             });
@@ -68,6 +77,20 @@ class Colaboracion {
         let targetAtraccion = this.figuraArrastrada ? 1.0 : 0.0;
         this.progresoAtraccion = lerp(this.progresoAtraccion, targetAtraccion, 0.05);
 
+        // Recalcular objetivos de los cuadrados alrededor del círculo actual
+        let circulo = this.figuras.find(ff => ff.tipo === "circulo");
+        if (circulo) {
+            for (let ff of this.figuras) {
+                if (ff.tipo === "cuadrado") {
+                    let off = this.offsetsByIndex[ff.index];
+                    if (off) {
+                        ff.targetX = constrain(circulo.x + off.dx, 0, 1);
+                        ff.targetY = constrain(circulo.y + off.dy, 0, 1);
+                    }
+                }
+            }
+        }
+
         for (let f of this.figuras) {
             if (f === this.figuraArrastrada) {
                 f.origenX = f.x;
@@ -99,8 +122,10 @@ class Colaboracion {
         noStroke();
 
         if (f.tipo === "circulo") {
-            fill(cRosa);
-            circle(0, 0, f.tam);
+            let brillo = map(sin(frameCount * 0.1 + f.fase), -1, 1, 210, 255);
+            fill(255, 0, 120, brillo);
+            let tamCirculo = f.tam + sin(frameCount * 0.08 + f.fase) * 1.8;
+            circle(0, 0, tamCirculo);
         } else if (f.tipo === "cuadrado") {
             fill(cVioleta);
             rectMode(CENTER);
@@ -122,28 +147,6 @@ class Colaboracion {
         noStroke();
         fill(245);
         rect(this.x, this.y, this.w, this.h);
-
-        if (this.progresoAtraccion > 0.05) {
-            push();
-            let cNaranja = color(255, 140, 0);
-            stroke(cNaranja);
-            strokeWeight(3.5);
-            noFill();
-
-            let xMin = this.x + 0.30 * this.w;
-            let xMax = this.x + 0.70 * this.w;
-            let yMin = this.y + 0.30 * this.h;
-            let yMax = this.y + 0.70 * this.h;
-
-            let extX = (xMax - xMin) * (1 - this.progresoAtraccion) * 0.3;
-            let extY = (yMax - yMin) * (1 - this.progresoAtraccion) * 0.3;
-
-            line(xMin + extX, yMin, xMax - extX, yMin);
-            line(xMin + extX, yMax, xMax - extX, yMax);
-            line(xMin, yMin + extY, xMin, yMax - extY);
-            line(xMax, yMin + extY, xMax, yMax - extY);
-            pop();
-        }
 
         for (let f of this.figuras) {
             this.dibujarFigura(f);
