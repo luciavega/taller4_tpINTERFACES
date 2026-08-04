@@ -39,8 +39,8 @@ class Identidad {
             {
                 tipo: "cuadrado",
                 x: 0.80,
-                y: 0.25,
-                tam: 110, 
+                y: 0.60,
+                tam:90, 
                 c: violeta,
                 propiedad: "tamaño"
             },
@@ -53,20 +53,15 @@ class Identidad {
                 propiedad: "vibracion"
             },
             {
-                tipo: "triangulo",
-                x: 0.85,
-                y: 0.75,
-                tam: 65,
-                c: rosa,
-                propiedad: "rotacion"
-            },
-            {
                 tipo: "circulo",
                 x: 0.50,
-                y: 0.15,
+                baseX: 0.50,
+                y: 0.20,
                 tam: 60,
                 c: violeta,
-                propiedad: "respiracion"
+                propiedad: "respiracion",
+                respiracion: 1,
+                fase: random(TWO_PI)
             }
         ];
     }
@@ -101,11 +96,37 @@ class Identidad {
         for (let f of this.figuras) {
             let fRealX = this.x + f.x * this.w;
             let fRealY = this.y + f.y * this.h;
+            let radioActivacion = 80;
+            if (f.tipo === "circulo" && f.propiedad === "respiracion") {
+                radioActivacion = f.tam * 0.5;
+            } else if (f.tipo === "triangulo" && f.propiedad === "color") {
+                radioActivacion = f.tam * 0.6;
+            }
 
-            if (dist(pRealX, pRealY, fRealX, fRealY) < 80) {
+            if (dist(pRealX, pRealY, fRealX, fRealY) < radioActivacion) {
                 propiedadActiva = f.propiedad;
                 break; 
             }
+        }
+
+        let circuloVioleta = this.figuras.find(f => f.tipo === "circulo" && f.propiedad === "respiracion");
+        if (circuloVioleta) {
+            let movimiento = sin(frameCount * 0.06 + circuloVioleta.fase) * 0.08;
+            circuloVioleta.x = constrain(circuloVioleta.baseX + movimiento, 0.1, 0.9);
+
+            let fRealX = this.x + circuloVioleta.x * this.w;
+            let fRealY = this.y + circuloVioleta.y * this.h;
+            let distancia = dist(pRealX, pRealY, fRealX, fRealY);
+            let estaSobreFigura = distancia < circuloVioleta.tam * 0.5;
+
+            let destinoResp = 1 + sin(frameCount * 0.1 + circuloVioleta.fase) * 0.12;
+            if (estaSobreFigura) {
+                destinoResp = this.protagonista.respiracion;
+                if (!this.arrastrando) {
+                    this.protagonista.x = lerp(this.protagonista.x, circuloVioleta.x, 0.08);
+                }
+            }
+            circuloVioleta.respiracion = lerp(circuloVioleta.respiracion, destinoResp, 0.08);
         }
 
         let targetColor = this.protagonista.cBase;
@@ -131,13 +152,23 @@ class Identidad {
         let px = this.x + f.x * this.w;
         let py = this.y + f.y * this.h;
 
+        let vibX = 0;
+        let vibY = 0;
+        if (f.propiedad === "vibracion") {
+            vibX = random(-2, 2);
+            vibY = random(-2, 2);
+        }
+
         push();
-        translate(px, py);
+        translate(px + vibX, py + vibY);
         noStroke();
         fill(f.c);
 
         switch (f.tipo) {
             case "circulo":
+                if (f.propiedad === "respiracion") {
+                    scale(f.respiracion || 1);
+                }
                 circle(0, 0, f.tam);
                 break;
 
@@ -169,12 +200,6 @@ class Identidad {
         translate(px + vibX, py + vibY);
         rotate(this.protagonista.rotacion);
         scale(this.protagonista.respiracion);
-
-        // linea q identifica a la figura prota
-        noFill();
-        stroke(this.protagonista.bordeC);
-        strokeWeight(3);
-        circle(0, 0, this.protagonista.tam + 10);
 
         noStroke();
         fill(this.protagonista.c);
