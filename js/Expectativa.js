@@ -5,135 +5,255 @@ class Expectativa {
         this.w = w;
         this.h = h;
 
-        this.progresoInteraccion = 0; 
-        this.escalaFiguras = 1;     
-        
-        this.crearGrilla();
+        this.cellSize = 40;
+        this.spacing = 46;
+
+        this.dragging = null;
+        this.completed = false;
+
+        this.finalScale = 1.5;
+
+        this.setupGrid();
     }
 
-    crearGrilla() {
-        this.grillaLayout = [
-            ["Q", "Q", "Q"],
-            ["Q", "C", "C"],
-            ["Q", "C", "Q"]
+    setupGrid() {
+
+        // Configuración final esperada
+        this.correctLayout = [
+            ["Q","Q","Q","Q","C"],
+            ["Q","Q","Q","C","C"],
+            ["Q","Q","C","C","C"],
+            ["Q","C","C","C","C"]
         ];
 
-        this.figuras = [];
-        let sep = 55; 
+        this.figures = [];
 
-        for (let fila = 0; fila < 3; fila++) {
-            for (let col = 0; col < 3; col++) {
-                let posX = this.w / 2 + (col - 1) * sep;
-                let posY = this.h / 2 + (fila - 1) * sep;
+        const rows = this.correctLayout.length;
+        const cols = this.correctLayout[0].length;
 
-                this.figuras.push({
-                    x: posX,
-                    y: posY,
-                    tipo: this.grillaLayout[fila][col],
-                    tam: 36
+        const offsetX = this.w / 2 - ((cols - 1) * this.spacing) / 2;
+        const offsetY = this.w > 0
+            ? this.h / 2 - ((rows - 1) * this.spacing) / 2
+            : 0;
+
+        // Separación inicial entre agrupaciones
+        const splitAmount = 70;
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+
+                const homeX = offsetX + c * this.spacing;
+                const homeY = offsetY + r * this.spacing;
+
+                let startX = homeX;
+
+                if (this.correctLayout[r][c] === "Q") {
+                    startX -= splitAmount;
+                } else {
+                    startX += splitAmount;
+                }
+
+                this.figures.push({
+                    row: r,
+                    col: c,
+
+                    startX: startX,
+                    startY: homeY,
+
+                    homeX: homeX,
+                    homeY: homeY,
+
+                    x: startX,
+                    y: homeY,
+
+                    type: this.correctLayout[r][c],
+
+                    draggable: false
                 });
             }
         }
+
+        // Piezas desordenadas e interactuables
+        // círculo correcto en fila 2 col 2
+        // cuadrado correcto en fila 3 col 4
+
+        this.posA = this.figures.find(
+            f => f.row === 1 && f.col === 1
+        );
+
+        this.posB = this.figures.find(
+            f => f.row === 2 && f.col === 3
+        );
+
+        // Intercambiar tipos para generar el error inicial
+        const temp = this.posA.type;
+        this.posA.type = this.posB.type;
+        this.posB.type = temp;
+
+        this.posA.draggable = true;
+        this.posB.draggable = true;
     }
 
     update() {
-        const dentro = mouseX >= this.x &&
-            mouseX <= this.x + this.w &&
-            mouseY >= this.y &&
-            mouseY <= this.y + this.h;
 
-        if (dentro && mouseIsPressed) {
-            this.progresoInteraccion = lerp(this.progresoInteraccion, 1.0, 0.04);
+     /*   if (this.completed) {
+            // Crecimiento final suave y lento
+            this.finalScale = lerp(this.finalScale, 1.05, 0.015);
         } else {
-            this.progresoInteraccion = lerp(this.progresoInteraccion, 0.0, 0.08);
+            this.finalScale = lerp(this.finalScale, 1.0, 0.08);
+        }
+*/
+if (!this.completed) {
+
+    this.finalScale = lerp(this.finalScale, 1.0, 0.08);
+
+} else {
+
+    let agrupacionCompleta = true;
+
+    for (let fig of this.figures) {
+
+        const dx = abs(fig.x - fig.homeX);
+        const dy = abs(fig.y - fig.homeY);
+
+        if (dx > 1 || dy > 1) {
+            agrupacionCompleta = false;
+            break;
+        }
+    }
+
+    if (agrupacionCompleta) {
+        this.finalScale = lerp(this.finalScale, 1.05, 0.01);
+    }
+}
+        for (let fig of this.figures) {
+
+            if (fig !== this.dragging) {
+
+                const targetX = this.completed
+                    ? fig.homeX
+                    : fig.startX;
+
+                const targetY = this.completed
+                    ? fig.homeY
+                    : fig.startY;
+
+                fig.x = lerp(fig.x, targetX, 0.03);
+                fig.y = lerp(fig.y, targetY, 0.03);
+            }
         }
 
-        this.factorEncaje = pow(this.progresoInteraccion, 5); 
+        if (this.dragging) {
+            this.dragging.x = mouseX - this.x;
+            this.dragging.y = mouseY - this.y;
+        }
 
-        if (this.factorEncaje > 0.95) {
-            this.escalaFiguras = lerp(this.escalaFiguras, 1.12, 0.2);
-        } else {
-            this.escalaFiguras = lerp(this.escalaFiguras, 1.0, 0.1);
+        // Evita figuras pegadas al mouse
+        if (!mouseIsPressed && this.dragging) {
+            this.mouseReleased();
         }
     }
 
     draw() {
+
         this.update();
 
         push();
 
-        drawingContext.save();
-        drawingContext.beginPath();
-        drawingContext.rect(this.x, this.y, this.w, this.h);
-        drawingContext.clip();
         translate(this.x, this.y);
-        
+
         noStroke();
         fill(245);
         rect(0, 0, this.w, this.h);
 
-        // Paleta de colores segura
-        let cRosa = color(255, 0, 120);
-        let cVioleta = color(180, 0, 255);
-        let cNaranja = color(255, 140, 0);
+        const purple = color(200, 0, 255);
+        const red = color(255, 20, 20);
 
-        for (let f of this.figuras) {
+        for (let fig of this.figures) {
+
             push();
-            translate(f.x, f.y);
-            scale(this.escalaFiguras);
+
+            translate(fig.x, fig.y);
+            scale(this.finalScale);
+
             noStroke();
 
-            if (f.tipo === "Q") {
-                fill(cVioleta);
+            if (fig.type === "Q") {
+
+                fill(purple);
+
                 rectMode(CENTER);
-                square(0, 0, f.tam);
-            } else if (f.tipo === "C") {
-                fill(cRosa);
-                circle(0, 0, f.tam);
+                square(0, 0, this.cellSize);
+
+            } else {
+
+                fill(red);
+
+                circle(0, 0, this.cellSize);
             }
+
             pop();
         }
 
-        let margenEncaje = 85; 
-        let centroX = this.w / 2;
-        let centroY = this.h / 2;
-
-        let desarmado = (1 - this.factorEncaje) * 35; 
-        let desalineado = (1 - this.factorEncaje) * 15; 
-
-        stroke(cNaranja);
-        strokeWeight(3.5);
-        noFill();
-
-        line(
-            centroX - margenEncaje + desalineado, 
-            centroY - margenEncaje - desarmado, 
-            centroX + margenEncaje + desalineado, 
-            centroY - margenEncaje - desarmado
-        );
-
-        line(
-            centroX - margenEncaje - desalineado, 
-            centroY + margenEncaje + desarmado, 
-            centroX + margenEncaje - desalineado, 
-            centroY + margenEncaje + desarmado
-        );
-
-        line(
-            centroX - margenEncaje - desarmado, 
-            centroY - margenEncaje + desalineado, 
-            centroX - margenEncaje - desarmado, 
-            centroY + margenEncaje + desalineado
-        );
-
-        line(
-            centroX + margenEncaje + desarmado, 
-            centroY - margenEncaje - desalineado, 
-            centroX + margenEncaje + desarmado, 
-            centroY + margenEncaje - desalineado
-        );
-
-        drawingContext.restore();
         pop();
+    }
+
+    mousePressed() {
+
+        if (this.completed) return;
+
+        const localX = mouseX - this.x;
+        const localY = mouseY - this.y;
+
+        for (let fig of this.figures) {
+
+            if (!fig.draggable) continue;
+
+            const d = dist(
+                localX,
+                localY,
+                fig.x,
+                fig.y
+            );
+
+            if (d < this.cellSize) {
+                this.dragging = fig;
+                return;
+            }
+        }
+    }
+
+    mouseReleased() {
+
+        if (this.completed || !this.dragging) return;
+
+        const localX = mouseX - this.x;
+        const localY = mouseY - this.y;
+
+        const other =
+            this.dragging === this.posA
+                ? this.posB
+                : this.posA;
+
+        const d = dist(
+            localX,
+            localY,
+            other.x,
+            other.y
+        );
+
+        if (d < this.cellSize) {
+
+            const tempType = this.dragging.type;
+            this.dragging.type = other.type;
+            other.type = tempType;
+
+            this.completed = true;
+        }
+
+        this.dragging.x = this.dragging.homeX;
+        this.dragging.y = this.dragging.homeY;
+
+        this.dragging = null;
     }
 }

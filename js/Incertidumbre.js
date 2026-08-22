@@ -6,7 +6,7 @@ class Incertidumbre {
         this.h = h;
 
         this.filas = 3;
-        this.columnas = 7;
+        this.columnas = 4;
         this.mousePresionadoPrevio = false;
         
         this.crearComposicion();
@@ -20,12 +20,12 @@ class Incertidumbre {
         for (let f = 0; f < this.filas; f++) {
             for (let c = 0; c < this.columnas; c++) {
                 
-                let posX = map(c, 0, this.columnas - 1, 0.1, 0.9);
-                let posY = map(f, 0, this.filas - 1, 0.2, 0.8);
+               let posX = map(c, 0, this.columnas - 1, 0.25, 0.7);
+               let posY = map(f, 0, this.filas - 1, 0.25, 0.7);
 
                 let tipoAleatorio = random(tipos);
                 
-                if ((f === 0 && c === 1) || (f === 0 && c === 5) || (f === 1 && c === 3) || (f === 2 && c === 1)) {
+                if ((f === 0 && c === 1) || (f === 0 && c === 4) || (f === 1 && c === 3) || (f === 2 && c === 1)) {
                     tipoAleatorio = "vacio";
                 } else if (tipoAleatorio === "vacio") {
                     tipoAleatorio = random(["circulo", "triangulo", "cuadrado"]); 
