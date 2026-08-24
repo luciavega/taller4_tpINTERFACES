@@ -13,14 +13,15 @@ class Empatia {
         let rosa = color(255, 0, 120);
         let azul = color(40, 120, 255);
 
+        // Se mapean los tipos a "C" y "T" para que coincidan con las claves de EfectoVisualGlobal
         this.figuras = [
-            { id: 0, tipo: "circulo", grupo: "circulos", x: 0.20, y: 0.35, tam: 55, c: rosa, sync: 0, offsetFase: 0 },
-            { id: 1, tipo: "circulo", grupo: "circulos", x: 0.30, y: 0.65, tam: 55, c: rosa, sync: 0, offsetFase: 2 },
-            { id: 2, tipo: "circulo", grupo: "circulos", x: 0.15, y: 0.50, tam: 55, c: rosa, sync: 0, offsetFase: 4 },
+            { id: 0, tipo: "C", grupo: "circulos", x: 0.20, y: 0.35, tam: 55, c: rosa, sync: 0, offsetFase: 0 },
+            { id: 1, tipo: "C", grupo: "circulos", x: 0.30, y: 0.65, tam: 55, c: rosa, sync: 0, offsetFase: 2 },
+            { id: 2, tipo: "C", grupo: "circulos", x: 0.15, y: 0.50, tam: 55, c: rosa, sync: 0, offsetFase: 4 },
             
-            { id: 3, tipo: "triangulo", grupo: "triangulos", x: 0.75, y: 0.35, tam: 60, c: azul, sync: 0, offsetFase: 0 },
-            { id: 4, tipo: "triangulo", grupo: "triangulos", x: 0.85, y: 0.50, tam: 60, c: azul, sync: 0, offsetFase: 2.5 },
-            { id: 5, tipo: "triangulo", grupo: "triangulos", x: 0.70, y: 0.65, tam: 60, c: azul, sync: 0, offsetFase: 5 }
+            { id: 3, tipo: "T", grupo: "triangulos", x: 0.75, y: 0.35, tam: 60, c: azul, sync: 0, offsetFase: 0 },
+            { id: 4, tipo: "T", grupo: "triangulos", x: 0.85, y: 0.50, tam: 60, c: azul, sync: 0, offsetFase: 2.5 },
+            { id: 5, tipo: "T", grupo: "triangulos", x: 0.70, y: 0.65, tam: 60, c: azul, sync: 0, offsetFase: 5 }
         ];
     }
 
@@ -90,18 +91,10 @@ class Empatia {
         push();
         translate(px + despX, py + despY);
         noStroke();
-        fill(f.c);
 
-        switch (f.tipo) {
-            case "circulo":
-                circle(0, 0, f.tam);
-                break;
+        // Aplicar la representación visual desde EfectoVisualGlobal
+        EfectoVisualGlobal.dibujar(f, f.tipo, f.tam);
 
-            case "triangulo":
-                let h = f.tam * 0.86;
-                triangle(0, -h / 2, -f.tam / 2, h / 2, f.tam / 2, h / 2);
-                break;
-        }
         pop();
     }
 

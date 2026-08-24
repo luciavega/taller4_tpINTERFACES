@@ -1,7 +1,6 @@
 class Ansiedad {
 
     constructor(x, y, w, h) {
-
         this.x = x;
         this.y = y;
         this.w = w;
@@ -21,113 +20,80 @@ class Ansiedad {
         this.crearComposicion();
     }
 
-   crearComposicion() {
+    crearComposicion() {
+        this.cuadrados = [];
+        this.circulos = [];
 
-    this.cuadrados = [];
-    this.circulos = [];
+        let sepX = 80;
+        let sepY = 30;
+        let inicioY = 95;
 
-    let sepX = 80;
-    let sepY = 30;
-    let inicioY = 95;
+        // Círculo interactuable
+        this.circulos.push({
+            tipo: "C",
+            origenX: this.w / 2,
+            origenY: 20,
+            x: this.w / 2,
+            y: 20,
+            tam: 34,
+            vibracion: 0,
+            interactivo: true,
+            fase: random(TWO_PI)
+        });
 
-    // círculo interactuable
-    this.circulos.push({
+        // Triángulo de cuadrados
+        for (let fila = 0; fila < 4; fila++) {
+            let cantidad = fila + 1;
+            let y = inicioY + fila * sepY;
+            let inicioX = this.w / 2 - ((cantidad - 1) * sepX) / 2;
 
-        origenX: this.w / 2,
-        origenY: 20,
+            for (let i = 0; i < cantidad; i++) {
+                let x = inicioX + i * sepX;
 
-        x: this.w / 2,
-        y: 20,
+                // Hueco reservado para el círculo
+                if (fila === 2 && i === 1) {
+                    continue;
+                }
 
-        tam: 34,
-        vibracion: 0,
-
-        interactivo: true,
-
-        fase: random(TWO_PI)
-    });
-
-    // triángulo de cuadrados
-    for (let fila = 0; fila < 4; fila++) {
-
-        let cantidad = fila + 1;
-
-        let y =
-            inicioY +
-            fila * sepY;
-
-        let inicioX =
-            this.w / 2 -
-            ((cantidad - 1) * sepX) / 2;
-
-        for (let i = 0; i < cantidad; i++) {
-
-            let x =
-                inicioX +
-                i * sepX;
-
-            // hueco reservado para el círculo
-            if (fila === 2 && i === 1) {
-                continue;
+                this.cuadrados.push({
+                    tipo: "Q",
+                    origenX: x,
+                    origenY: y,
+                    x: x,
+                    y: y,
+                    tam: 30,
+                    vibracion: 0,
+                    fase: random(TWO_PI)
+                });
             }
+        }
 
-            this.cuadrados.push({
+        // Fila inferior de círculos
+        let cantidadCirculos = 5;
+        let yCirculos = inicioY + 4 * sepY;
+        let inicioXCirculos = this.w / 2 - ((cantidadCirculos - 1) * sepX) / 2;
 
+        for (let i = 0; i < cantidadCirculos; i++) {
+            let x = inicioXCirculos + i * sepX;
+
+            this.circulos.push({
+                tipo: "C",
                 origenX: x,
-                origenY: y,
-
+                origenY: yCirculos,
                 x: x,
-                y: y,
-
-                tam: 30,
+                y: yCirculos,
+                tam: 35,
                 vibracion: 0,
-
+                interactivo: false,
                 fase: random(TWO_PI)
             });
         }
     }
 
-    // fila inferior de círculos
-    let cantidadCirculos = 5;
-
-    let yCirculos =
-        inicioY +
-       4* sepY;
-
-    let inicioXCirculos =
-        this.w / 2 -
-        ((cantidadCirculos - 1) * sepX) / 2;
-
-    for (let i = 0; i < cantidadCirculos; i++) {
-
-        let x =
-            inicioXCirculos +
-            i * sepX;
-
-        this.circulos.push({
-
-            origenX: x,
-            origenY: yCirculos,
-
-            x: x,
-            y: yCirculos,
-
-            tam: 35,
-            vibracion: 0,
-
-            interactivo: false,
-
-            fase: random(TWO_PI)
-        });
-    }
-}
-
     update() {
-
         let candidato = null;
 
         for (let c of this.circulos) {
-
             let dx = mouseX - (this.x + c.x);
             let dy = mouseY - (this.y + c.y);
 
@@ -147,13 +113,11 @@ class Ansiedad {
         }
 
         this.prevMouse = mouseIsPressed;
-
         this.explosion *= 0.92;
 
         let intensidadAnsiedad = 0;
 
         if (this.circuloControl) {
-
             let centroX = this.w / 2;
             let centroY = 160;
 
@@ -174,12 +138,10 @@ class Ansiedad {
         }
 
         for (let c of this.circulos) {
-
             let targetX = c.origenX;
             let targetY = c.origenY;
 
             if (c === this.circuloControl) {
-
                 let mouseLocalY = constrain(
                     mouseY - this.y,
                     this.minY,
@@ -189,19 +151,15 @@ class Ansiedad {
                 c.y = mouseLocalY;
                 c.x = c.origenX;
                 c.vibracion = intensidadAnsiedad * 10;
-
                 continue;
             }
 
             if (this.explosion > 0.01) {
-
                 let dx = c.origenX - this.w / 2;
                 let dy = c.origenY - this.h / 2;
-
                 let mag = sqrt(dx * dx + dy * dy);
 
                 if (mag > 0) {
-
                     targetX += (dx / mag) * 140 * this.explosion;
                     targetY += (dy / mag) * 140 * this.explosion;
                 }
@@ -209,116 +167,72 @@ class Ansiedad {
 
             c.x = lerp(c.x, targetX, 0.12);
             c.y = lerp(c.y, targetY, 0.12);
-
             c.vibracion = intensidadAnsiedad * 8;
         }
-for (let q of this.cuadrados) {
 
-    let targetX = q.origenX;
-    let targetY = q.origenY;
+        for (let q of this.cuadrados) {
+            let targetX = q.origenX;
+            let targetY = q.origenY;
 
-    if (this.circuloControl) {
+            if (this.circuloControl) {
+                let huecoX = this.w / 2;
+                let huecoY = 160;
 
-        let huecoX = this.w / 2;
-        let huecoY = 160;
+                let distanciaCentro = dist(
+                    this.circuloControl.x,
+                    this.circuloControl.y,
+                    huecoX,
+                    huecoY
+                );
 
-        let distanciaCentro = dist(
-            this.circuloControl.x,
-            this.circuloControl.y,
-            huecoX,
-            huecoY
-        );
+                let ansiedad = map(
+                    constrain(distanciaCentro, 0, 180),
+                    180,
+                    0,
+                    0,
+                    1
+                );
 
-        let ansiedad = map(
-            constrain(distanciaCentro, 0, 180),
-            180,
-            0,
-            0,
-            1
-        );
+                let dx = q.origenX - this.circuloControl.x;
+                let dy = q.origenY - this.circuloControl.y;
 
-        let dx =
-            q.origenX -
-            this.circuloControl.x;
+                let repulsion = map(
+                    ansiedad,
+                    0,
+                    1,
+                    0,
+                    40
+                );
 
-        let dy =
-            q.origenY -
-            this.circuloControl.y;
+                let magnitud = sqrt(dx * dx + dy * dy);
 
-        let repulsion =
-            map(
-                ansiedad,
-                0,
-                1,
-                0,
-                40
-            );
+                if (magnitud > 0) {
+                    targetX += (dx / magnitud) * repulsion;
+                    targetY += (dy / magnitud) * repulsion;
+                }
 
-        let magnitud =
-            sqrt(dx * dx + dy * dy);
+                q.vibracion = ansiedad * 10;
+            } else {
+                q.vibracion = 0;
+            }
 
-        if (magnitud > 0) {
+            if (this.explosion > 0.01) {
+                let dx = q.origenX - this.w / 2;
+                let dy = q.origenY - this.h / 2;
+                let mag = sqrt(dx * dx + dy * dy);
 
-            targetX +=
-                (dx / magnitud) *
-                repulsion;
+                if (mag > 0) {
+                    targetX += (dx / mag) * 160 * this.explosion;
+                    targetY += (dy / mag) * 160 * this.explosion;
+                }
+            }
 
-            targetY +=
-                (dy / magnitud) *
-                repulsion;
+            q.x = lerp(q.x, targetX, 0.08);
+            q.y = lerp(q.y, targetY, 0.08);
         }
-
-        q.vibracion =
-            ansiedad * 10;
-
-    } else {
-
-        q.vibracion = 0;
-    }
-
-    if (this.explosion > 0.01) {
-
-        let dx =
-            q.origenX -
-            this.w / 2;
-
-        let dy =
-            q.origenY -
-            this.h / 2;
-
-        let mag =
-            sqrt(dx * dx + dy * dy);
-
-        if (mag > 0) {
-
-            targetX +=
-                (dx / mag) *
-                160 *
-                this.explosion;
-
-            targetY +=
-                (dy / mag) *
-                160 *
-                this.explosion;
-        }
-    }
-
-    q.x = lerp(
-        q.x,
-        targetX,
-        0.08
-    );
-
-    q.y = lerp(
-        q.y,
-        targetY,
-        0.08
-    );
-}
     }
 
     draw() {
-
         this.update();
 
         push();
@@ -334,10 +248,8 @@ for (let q of this.cuadrados) {
         fill(245);
         rect(0, 0, this.w, this.h);
 
-        fill(180, 0, 255);
-
+        // Renderizado de Cuadrados mediante EfectoVisualGlobal
         for (let q of this.cuadrados) {
-
             push();
 
             let reposoX = sin(frameCount * 0.03 + q.fase);
@@ -351,18 +263,16 @@ for (let q of this.cuadrados) {
                 q.y + reposoY + vibY
             );
 
+            // Inclinación característica del diseño original de cuadrados
             rotate(PI / 4);
 
-            rectMode(CENTER);
-            square(0, 0, q.tam);
+            EfectoVisualGlobal.dibujar(q, q.tipo, q.tam);
 
             pop();
         }
 
-        fill(255, 0, 120);
-
+        // Renderizado de Círculos mediante EfectoVisualGlobal
         for (let c of this.circulos) {
-
             push();
 
             let reposoX = sin(frameCount * 0.03 + c.fase);
@@ -376,7 +286,7 @@ for (let q of this.cuadrados) {
                 c.y + reposoY + vibY
             );
 
-            circle(0, 0, c.tam);
+            EfectoVisualGlobal.dibujar(c, c.tipo, c.tam);
 
             pop();
         }

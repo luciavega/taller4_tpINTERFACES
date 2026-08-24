@@ -5,14 +5,21 @@ class Identidad {
         this.w = w;
         this.h = h;
         
+        // Atributos numéricos de color para el protagonista (independientes)
         this.protagonista = {
             x: 0.50,
             y: 0.50,
             tamBase: 65,
             tam: 65,
-            cBase: color(255, 0, 120), 
-            c: color(255, 0, 120),
-            bordeC: color(255, 140, 0), 
+            // RGB Relleno Base (Rosa)
+            rBase: 255, gBase: 0, bBase: 120,
+            r: 255, g: 0, b: 120,
+            
+            // RGB Borde Base (Naranja)
+            rBordeBase: 255, gBordeBase: 140, bBordeBase: 0,
+            rBorde: 255, gBorde: 140, bBorde: 0,
+            grosorBorde: 3,
+
             rotacion: 0,
             vibracion: 0,
             respiracion: 1
@@ -23,42 +30,48 @@ class Identidad {
     }
 
     crearComposicion() {
-        let rosa = color(255, 0, 120);
-        let azul = color(40, 120, 255);
-        let violeta = color(180, 0, 255);
-
         this.figuras = [
             {
-                tipo: "triangulo",
+                tipo: "T",
                 x: 0.20,
                 y: 0.25,
                 tam: 75,
-                c: azul,
+                // Triángulo Verde
+                r: 0, g: 200, b: 100,
+                rBorde: 0, gBorde: 255, bBorde: 150, // Borde con brillo/textura verde
+                c: color(0, 200, 100),
+                color: color(0, 200, 100),
                 propiedad: "color"
             },
             {
-                tipo: "cuadrado",
+                tipo: "Q",
                 x: 0.80,
                 y: 0.60,
-                tam:90, 
-                c: violeta,
+                tam: 90, 
+                r: 180, g: 0, b: 255,
+                c: color(180, 0, 255),
+                color: color(180, 0, 255),
                 propiedad: "tamaño"
             },
             {
-                tipo: "cuadrado",
+                tipo: "Q",
                 x: 0.15,
                 y: 0.75,
                 tam: 35,  
-                c: violeta,
+                r: 180, g: 0, b: 255,
+                c: color(180, 0, 255),
+                color: color(180, 0, 255),
                 propiedad: "vibracion"
             },
             {
-                tipo: "circulo",
+                tipo: "C",
                 x: 0.50,
                 baseX: 0.50,
                 y: 0.20,
                 tam: 60,
-                c: violeta,
+                r: 180, g: 0, b: 255,
+                c: color(180, 0, 255),
+                color: color(180, 0, 255),
                 propiedad: "respiracion",
                 respiracion: 1,
                 fase: random(TWO_PI)
@@ -89,27 +102,24 @@ class Identidad {
             this.arrastrando = false;
         }
 
-        let propiedadActiva = null;
+        let figuraInteractuada = null;
         let pRealX = this.x + this.protagonista.x * this.w;
         let pRealY = this.y + this.protagonista.y * this.h;
 
         for (let f of this.figuras) {
             let fRealX = this.x + f.x * this.w;
             let fRealY = this.y + f.y * this.h;
-            let radioActivacion = 80;
-            if (f.tipo === "circulo" && f.propiedad === "respiracion") {
-                radioActivacion = f.tam * 0.5;
-            } else if (f.tipo === "triangulo" && f.propiedad === "color") {
-                radioActivacion = f.tam * 0.6;
-            }
+            
+            // Radio de detección por contacto físico
+            let radioActivacion = (f.tam / 2) + (this.protagonista.tam / 2);
 
             if (dist(pRealX, pRealY, fRealX, fRealY) < radioActivacion) {
-                propiedadActiva = f.propiedad;
+                figuraInteractuada = f;
                 break; 
             }
         }
 
-        let circuloVioleta = this.figuras.find(f => f.tipo === "circulo" && f.propiedad === "respiracion");
+        let circuloVioleta = this.figuras.find(f => f.tipo === "C" && f.propiedad === "respiracion");
         if (circuloVioleta) {
             let movimiento = sin(frameCount * 0.06 + circuloVioleta.fase) * 0.08;
             circuloVioleta.x = constrain(circuloVioleta.baseX + movimiento, 0.1, 0.9);
@@ -129,19 +139,48 @@ class Identidad {
             circuloVioleta.respiracion = lerp(circuloVioleta.respiracion, destinoResp, 0.08);
         }
 
-        let targetColor = this.protagonista.cBase;
+        // Metas de color base (Rosa / Borde Naranja)
+        let targetR = this.protagonista.rBase;
+        let targetG = this.protagonista.gBase;
+        let targetB = this.protagonista.bBase;
+
+        let targetRborde = this.protagonista.rBordeBase;
+        let targetGborde = this.protagonista.gBordeBase;
+        let targetBborde = this.protagonista.bBordeBase;
+        
         let targetTam = this.protagonista.tamBase;
         let targetRot = 0;
         let targetVib = 0;
         let targetResp = 1;
 
-        if (propiedadActiva === "color") targetColor = color(40, 120, 255);
-        if (propiedadActiva === "tamaño") targetTam = 110;
-        if (propiedadActiva === "rotacion") targetRot = frameCount * 0.03;
-        if (propiedadActiva === "vibracion") targetVib = 1;
-        if (propiedadActiva === "respiracion") targetResp = 1 + sin(frameCount * 0.1) * 0.25;
+        if (figuraInteractuada) {
+            let propiedadActiva = figuraInteractuada.propiedad;
+            
+            if (propiedadActiva === "color") {
+                // Copia el color de relleno y el borde del triángulo verde
+                targetR = figuraInteractuada.r;
+                targetG = figuraInteractuada.g;
+                targetB = figuraInteractuada.b;
 
-        this.protagonista.c = lerpColor(this.protagonista.c, targetColor, 0.08);
+                targetRborde = figuraInteractuada.rBorde || figuraInteractuada.r;
+                targetGborde = figuraInteractuada.gBorde || figuraInteractuada.g;
+                targetBborde = figuraInteractuada.bBorde || figuraInteractuada.b;
+            }
+            if (propiedadActiva === "tamaño") targetTam = 110;
+            if (propiedadActiva === "rotacion") targetRot = frameCount * 0.03;
+            if (propiedadActiva === "vibracion") targetVib = 1;
+            if (propiedadActiva === "respiracion") targetResp = 1 + sin(frameCount * 0.1) * 0.25;
+        }
+
+        // Transición suave de color independiente (Lerp en RGB)
+        this.protagonista.r = lerp(this.protagonista.r, targetR, 0.15);
+        this.protagonista.g = lerp(this.protagonista.g, targetG, 0.15);
+        this.protagonista.b = lerp(this.protagonista.b, targetB, 0.15);
+
+        this.protagonista.rBorde = lerp(this.protagonista.rBorde, targetRborde, 0.15);
+        this.protagonista.gBorde = lerp(this.protagonista.gBorde, targetGborde, 0.15);
+        this.protagonista.bBorde = lerp(this.protagonista.bBorde, targetBborde, 0.15);
+
         this.protagonista.tam = lerp(this.protagonista.tam, targetTam, 0.08);
         this.protagonista.rotacion = lerp(this.protagonista.rotacion, targetRot, 0.08);
         this.protagonista.vibracion = lerp(this.protagonista.vibracion, targetVib, 0.1);
@@ -161,27 +200,13 @@ class Identidad {
 
         push();
         translate(px + vibX, py + vibY);
-        noStroke();
-        fill(f.c);
 
-        switch (f.tipo) {
-            case "circulo":
-                if (f.propiedad === "respiracion") {
-                    scale(f.respiracion || 1);
-                }
-                circle(0, 0, f.tam);
-                break;
-
-            case "cuadrado":
-                rectMode(CENTER);
-                square(0, 0, f.tam);
-                break;
-
-            case "triangulo":
-                let h = f.tam * 0.86;
-                triangle(0, -h / 2, -f.tam / 2, h / 2, f.tam / 2, h / 2);
-                break;
+        if (f.propiedad === "respiracion") {
+            scale(f.respiracion || 1);
         }
+
+        // Las figuras estáticas siguen usando la textura del EfectoVisualGlobal
+        EfectoVisualGlobal.dibujar(f, f.tipo, f.tam);
         pop();
     }
 
@@ -201,8 +226,15 @@ class Identidad {
         rotate(this.protagonista.rotacion);
         scale(this.protagonista.respiracion);
 
-        noStroke();
-        fill(this.protagonista.c);
+        // DIBUJO INDEPENDIENTE (Sin pasar por EfectoVisualGlobal)
+        // 1. Estilo de borde personalizado (Textura/Grosor propio)
+        strokeWeight(this.protagonista.grosorBorde);
+        stroke(this.protagonista.rBorde, this.protagonista.gBorde, this.protagonista.bBorde);
+
+        // 2. Relleno dinámico independiente
+        fill(this.protagonista.r, this.protagonista.g, this.protagonista.b);
+
+        // 3. Dibujo directo del círculo protagonista
         circle(0, 0, this.protagonista.tam);
 
         pop();
@@ -226,6 +258,7 @@ class Identidad {
             this.dibujarFigura(f);
         }
 
+        // Dibuja el protagonista con su renderizado nativo
         this.dibujarProtagonista();
 
         drawingContext.restore();

@@ -1,201 +1,101 @@
 class Memoria {
 
     constructor(x, y, w, h) {
-
         this.x = x;
         this.y = y;
-
         this.w = w;
         this.h = h;
 
         this.figuras = [];
-
         this.crearComposicion();
-
     }
 
     crearComposicion() {
-
-        // Colores
-
         let rosa = color(255, 0, 120);
         let azul = color(40, 120, 255);
         let violeta = color(180, 0, 255);
-        let naranja = color(255, 140, 0);
 
-        // Posiciones
-this.figuras = [
+        let tiempoInicial = millis(); // Marca el inicio exacto para todas las figuras
 
-    // Círculos arriba
-    {tipo:"circulo",   x:0.40, y:0.25, tam:50, c:rosa},
-    {tipo:"circulo",   x:0.60, y:0.25, tam:50, c:rosa},
+        this.figuras = [
+            // Círculos arriba
+            { tipo: "C", x: 0.40, y: 0.25, tam: 50, c: rosa, color: rosa },
+            { tipo: "C", x: 0.60, y: 0.25, tam: 50, c: rosa, color: rosa },
 
-    // Triángulos más abiertos
-    {tipo:"triangulo", x:0.25, y:0.50, tam:45, c:azul},
-    {tipo:"triangulo", x:0.75, y:0.50, tam:45, c:azul},
+            // Triángulos
+            { tipo: "T", x: 0.25, y: 0.50, tam: 45, c: azul, color: azul },
+            { tipo: "T", x: 0.75, y: 0.50, tam: 45, c: azul, color: azul },
 
-    // Cuadrados abajo
-    {tipo:"cuadrado",  x:0.40, y:0.75, tam:38, c:violeta},
-    {tipo:"cuadrado",  x:0.60, y:0.75, tam:38, c:violeta}
+            // Cuadrados abajo
+            { tipo: "Q", x: 0.40, y: 0.75, tam: 38, c: violeta, color: violeta },
+            { tipo: "Q", x: 0.60, y: 0.75, tam: 38, c: violeta, color: violeta }
+        ];
 
-];
-
-for(let f of this.figuras){
-
-    f.alpha = 255;
-    f.escala = 1;
-
-    f.ultimoClick = millis();
-
-}
-    }
-
-update(){
-
-    let tiempoEspera = 3000; // 3 segundos
-
-    for(let f of this.figuras){
-
-        if(millis() - f.ultimoClick > tiempoEspera){
-
-            // Baja lentamente cuando no interactuás
-            f.alpha = lerp(f.alpha,20,0.03);
-
+        for (let f of this.figuras) {
+            f.alpha = 255;          // Empiezan totalmente visibles
+            f.escala = 1;
+            f.ultimoClick = tiempoInicial; // Temporizador iniciado al crear
         }
-
-        // ===== LATIDO =====
-
-        let pulso = (sin(frameCount * 0.05) + 1) / 2;
-
-f.escala = 1 + pulso * 0.05;
-
     }
 
-}
+    update() {
+        let tiempoEspera = 1000; // 1 segundo antes de empezar a desvanecerse
 
-mousePressed(){
+        for (let f of this.figuras) {
+            // Si pasaron más de 1000 ms desde el último clic (o desde que arrancó el sketch)
+            if (millis() - f.ultimoClick > tiempoEspera) {
+                // Desvanecimiento suave
+                f.alpha = lerp(f.alpha, 20, 0.025);
+            }
 
-    const dentro = mouseX >= this.x &&
-        mouseX <= this.x + this.w &&
-        mouseY >= this.y &&
-        mouseY <= this.y + this.h;
-
-    if(!dentro){
-        return;
-    }
-
-    for(let f of this.figuras){
-
-        let px = this.x + f.x*this.w;
-        let py = this.y + f.y*this.h;
-
-        let d = dist(mouseX,mouseY,px,py);
-
-        if(d < f.tam*0.7){
-
-            // Reinicia el temporizador
-            f.ultimoClick = millis();
-
-            // Cada click suma intensidad
-            f.alpha += 25;
-
-            // No puede pasar de 255
-            f.alpha = constrain(f.alpha,20,255);
-
+            // ===== LATIDO =====
+            let pulso = (sin(frameCount * 0.05) + 1) / 2;
+            f.escala = 1 + pulso * 0.05;
         }
-
     }
 
-}
+    mousePressed() {
+        const dentro = mouseX >= this.x &&
+            mouseX <= this.x + this.w &&
+            mouseY >= this.y &&
+            mouseY <= this.y + this.h;
 
-    dibujarFigura(f){
+        if (!dentro) return;
 
-        let px=this.x+f.x*this.w;
+        for (let f of this.figuras) {
+            let px = this.x + f.x * this.w;
+            let py = this.y + f.y * this.h;
 
-        let py=this.y+f.y*this.h;
+            let d = dist(mouseX, mouseY, px, py);
 
+            if (d < f.tam * 0.7) {
+                // Reinicia el temporizador al momento exacto del clic
+                f.ultimoClick = millis();
+
+                // Recupera la opacidad al tocarla
+                f.alpha += 100;
+                f.alpha = constrain(f.alpha, 20, 255);
+            }
+        }
+    }
+
+    dibujarFigura(f) {
+        let px = this.x + f.x * this.w;
+        let py = this.y + f.y * this.h;
 
         push();
-
-        translate(px,py);
-
+        translate(px, py);
         scale(f.escala);
 
-        fill(
-            red(f.c),
-            green(f.c),
-            blue(f.c),
-            f.alpha
-        );
+        // Control de opacidad mediante canvas context
+        drawingContext.globalAlpha = map(f.alpha, 0, 255, 0, 1);
 
-        stroke(
-            red(f.c),
-            green(f.c),
-            blue(f.c),
-            f.alpha
-        );
-
-        strokeWeight(3);
-
-        switch(f.tipo){
-
-            case "circulo":
-
-                noStroke();
-
-                circle(0,0,f.tam);
-
-                break;
-
-            case "cuadrado":
-
-                noStroke();
-
-                rectMode(CENTER);
-
-                square(0,0,f.tam);
-
-                break;
-
-            case "triangulo":
-
-                noStroke();
-
-                let h=f.tam*0.86;
-
-                triangle(
-
-                    0,-h/2,
-
-                    -f.tam/2,h/2,
-
-                    f.tam/2,h/2
-
-                );
-
-                break;
-
-            case "linea":
-
-                strokeWeight(3);
-
-                line(
-                    0,
-                    -f.tam/2,
-                    0,
-                    f.tam/2
-                );
-
-                break;
-
-        }
+        EfectoVisualGlobal.dibujar(f, f.tipo, f.tam);
 
         pop();
-
     }
 
-    draw(){
-
+    draw() {
         this.update();
 
         push();
@@ -205,48 +105,17 @@ mousePressed(){
         drawingContext.rect(this.x, this.y, this.w, this.h);
         drawingContext.clip();
 
-        // fondo
-
+        // Fondo
         noStroke();
-
         fill(240);
+        rect(this.x, this.y, this.w, this.h);
 
-        rect(
-            this.x,
-            this.y,
-            this.w,
-            this.h
-        );
-
-        // titulo
-
-        fill(30);
-
-        textAlign(CENTER);
-
-        textSize(18);
-
-       /* text(
-
-            "MEMORIA",
-
-            this.x+this.w/2,
-
-            this.y+30
-
-        );
-*/
-        // figuras
-
-        for(let f of this.figuras){
-
+        // Figuras
+        for (let f of this.figuras) {
             this.dibujarFigura(f);
-
         }
 
         drawingContext.restore();
         pop();
-
     }
-
 }

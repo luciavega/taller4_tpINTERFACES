@@ -11,16 +11,17 @@ class Colaboracion {
 
     crearComposicion() {
         this.figuras = [];
-        
+
+        // Definición de las 5 figuras con tipos ("C" para Círculo, "Q" para Cuadrado)
         let posicionesFinales = [
-            { targetX: 0.50, targetY: 0.50, tipo: "circulo" },
-            { targetX: 0.38, targetY: 0.38, tipo: "cuadrado" },
-            { targetX: 0.62, targetY: 0.38, tipo: "cuadrado" },
-            { targetX: 0.38, targetY: 0.62, tipo: "cuadrado" },
-            { targetX: 0.62, targetY: 0.62, tipo: "cuadrado" }
+            { targetX: 0.50, targetY: 0.50, tipo: "C" },
+            { targetX: 0.38, targetY: 0.38, tipo: "Q" },
+            { targetX: 0.62, targetY: 0.38, tipo: "Q" },
+            { targetX: 0.38, targetY: 0.62, tipo: "Q" },
+            { targetX: 0.62, targetY: 0.62, tipo: "Q" }
         ];
 
-        // Offsets (en coordenadas normalizadas) para los 4 cuadrados alrededor del círculo
+        // Offsets para los 4 cuadrados alrededor del círculo central
         this.offsetsByIndex = {
             1: { dx: -0.12, dy: -0.12 },
             2: { dx:  0.12, dy: -0.12 },
@@ -53,6 +54,7 @@ class Colaboracion {
             mouseY >= this.y &&
             mouseY <= this.y + this.h;
 
+        // Gestión de arrastre
         if (dentro && mouseIsPressed) {
             if (!this.figuraArrastrada) {
                 for (let f of this.figuras) {
@@ -74,14 +76,15 @@ class Colaboracion {
             this.figuraArrastrada = null;
         }
 
+        // Transición de atracción
         let targetAtraccion = this.figuraArrastrada ? 1.0 : 0.0;
         this.progresoAtraccion = lerp(this.progresoAtraccion, targetAtraccion, 0.05);
 
-        // Recalcular objetivos de los cuadrados alrededor del círculo actual
-        let circulo = this.figuras.find(ff => ff.tipo === "circulo");
+        // Recalcular posiciones de los cuadrados según la ubicación del círculo
+        let circulo = this.figuras.find(ff => ff.tipo === "C");
         if (circulo) {
             for (let ff of this.figuras) {
-                if (ff.tipo === "cuadrado") {
+                if (ff.tipo === "Q") {
                     let off = this.offsetsByIndex[ff.index];
                     if (off) {
                         ff.targetX = constrain(circulo.x + off.dx, 0, 1);
@@ -91,6 +94,7 @@ class Colaboracion {
             }
         }
 
+        // Animación de posición hacia destino
         for (let f of this.figuras) {
             if (f === this.figuraArrastrada) {
                 f.origenX = f.x;
@@ -110,27 +114,29 @@ class Colaboracion {
         let px = this.x + f.x * this.w;
         let py = this.y + f.y * this.h;
 
-        let cRosa = color(255, 0, 120);
-        let cVioleta = color(180, 0, 255);
-
         let flotar = (1 - this.progresoAtraccion) * 2;
         let offsetReposoX = sin(frameCount * 0.03 + f.fase) * flotar;
         let offsetReposoY = cos(frameCount * 0.025 + f.fase) * flotar;
 
         push();
         translate(px + offsetReposoX, py + offsetReposoY);
-        noStroke();
 
-        if (f.tipo === "circulo") {
-            let brillo = map(sin(frameCount * 0.1 + f.fase), -1, 1, 210, 255);
-            fill(255, 0, 120, brillo);
-            let tamCirculo = f.tam + sin(frameCount * 0.08 + f.fase) * 1.8;
-            circle(0, 0, tamCirculo);
-        } else if (f.tipo === "cuadrado") {
-            fill(cVioleta);
-            rectMode(CENTER);
-            square(0, 0, f.tam);
+        // Llamada directa al objeto EfectoVisualGlobal
+        if (typeof EfectoVisualGlobal !== "undefined" && typeof EfectoVisualGlobal.dibujar === "function") {
+            EfectoVisualGlobal.dibujar(f, f.tipo, f.tam);
+        } else {
+            // Fallback de contingencia si no se detecta el script global
+            noStroke();
+            if (f.tipo === "C") {
+                fill(255, 0, 120);
+                circle(0, 0, f.tam);
+            } else if (f.tipo === "Q") {
+                fill(180, 0, 255);
+                rectMode(CENTER);
+                square(0, 0, f.tam);
+            }
         }
+
         pop();
     }
 
@@ -139,15 +145,18 @@ class Colaboracion {
 
         push();
 
+        // Enmascaramiento dentro de los bordes del contenedor
         drawingContext.save();
         drawingContext.beginPath();
         drawingContext.rect(this.x, this.y, this.w, this.h);
         drawingContext.clip();
 
+        // Fondo del módulo
         noStroke();
-        fill(245);
+        fill(235);
         rect(this.x, this.y, this.w, this.h);
 
+        // Renderizado de cada figura con su efecto visual aplicado
         for (let f of this.figuras) {
             this.dibujarFigura(f);
         }

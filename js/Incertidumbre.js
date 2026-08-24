@@ -15,20 +15,21 @@ class Incertidumbre {
     crearComposicion() {
         this.figuras = [];
 
-        let tipos = ["circulo", "triangulo", "cuadrado", "vacio"];
+        // Claves usadas por EfectoVisualGlobal: "C" (círculo), "T" (triángulo), "Q" (cuadrado)
+        let tipos = ["C", "T", "Q", "vacio"];
 
         for (let f = 0; f < this.filas; f++) {
             for (let c = 0; c < this.columnas; c++) {
                 
-               let posX = map(c, 0, this.columnas - 1, 0.25, 0.7);
-               let posY = map(f, 0, this.filas - 1, 0.25, 0.7);
+                let posX = map(c, 0, this.columnas - 1, 0.25, 0.7);
+                let posY = map(f, 0, this.filas - 1, 0.25, 0.7);
 
                 let tipoAleatorio = random(tipos);
                 
                 if ((f === 0 && c === 1) || (f === 0 && c === 4) || (f === 1 && c === 3) || (f === 2 && c === 1)) {
                     tipoAleatorio = "vacio";
                 } else if (tipoAleatorio === "vacio") {
-                    tipoAleatorio = random(["circulo", "triangulo", "cuadrado"]); 
+                    tipoAleatorio = random(["C", "T", "Q"]); 
                 }
 
                 this.figuras.push({
@@ -76,7 +77,7 @@ class Incertidumbre {
     }
 
     mutarFiguraYVecinos(figuraCentral) {
-        let tipos = ["circulo", "triangulo", "cuadrado", "vacio"];
+        let tipos = ["C", "T", "Q", "vacio"];
 
         let indexActual = tipos.indexOf(figuraCentral.tipo);
         let siguienteIndex = (indexActual + 1) % tipos.length;
@@ -87,7 +88,7 @@ class Incertidumbre {
             let esVecino = (Math.abs(f.fila - figuraCentral.fila) + Math.abs(f.columna - figuraCentral.columna)) === 1;
             
             if (esVecino) {
-                let tipoVecino = random(["circulo", "triangulo", "cuadrado", "vacio"]);
+                let tipoVecino = random(["C", "T", "Q", "vacio"]);
                 f.tipo = tipoVecino;
                 f.targetEsfuerzo = 6; 
             }
@@ -100,32 +101,13 @@ class Incertidumbre {
         let px = this.x + f.x * this.w;
         let py = this.y + f.y * this.h;
 
-        let cRosa = color(255, 0, 120);
-        let cAzul = color(40, 120, 255);
-        let cVioleta = color(180, 0, 255);
-
         push();
         translate(px, py);
         noStroke();
 
-        switch (f.tipo) {
-            case "circulo":
-                fill(cRosa);
-                circle(0, 0, f.tam);
-                break;
+        // Aplicación unificada de texturas/efectos globales
+        EfectoVisualGlobal.dibujar(f, f.tipo, f.tam);
 
-            case "cuadrado":
-                fill(cVioleta);
-                rectMode(CENTER);
-                square(0, 0, f.tam);
-                break;
-
-            case "triangulo":
-                fill(cAzul);
-                let h = f.tam * 0.86;
-                triangle(0, -h / 2, -f.tam / 2, h / 2, f.tam / 2, h / 2);
-                break;
-        }
         pop();
     }
 

@@ -154,50 +154,56 @@ if (!this.completed) {
         }
     }
 
-    draw() {
+draw() {
 
-        this.update();
+    this.update();
+
+    push();
+
+    translate(this.x, this.y);
+
+    noStroke();
+
+    // Fondo de la escena
+    fill(245);
+    rect(0, 0, this.w, this.h);
+
+
+    // ---------------------------------------------
+    // FIGURAS
+    // ---------------------------------------------
+
+    for (let fig of this.figures) {
 
         push();
 
-        translate(this.x, this.y);
+        translate(fig.x, fig.y);
 
-        noStroke();
-        fill(245);
-        rect(0, 0, this.w, this.h);
+        scale(this.finalScale);
 
-        const purple = color(200, 0, 255);
-        const red = color(255, 20, 20);
 
-        for (let fig of this.figures) {
-
-            push();
-
-            translate(fig.x, fig.y);
-            scale(this.finalScale);
-
-            noStroke();
-
-            if (fig.type === "Q") {
-
-                fill(purple);
-
-                rectMode(CENTER);
-                square(0, 0, this.cellSize);
-
-            } else {
-
-                fill(red);
-
-                circle(0, 0, this.cellSize);
-            }
-
-            pop();
-        }
+        // La apariencia ahora la controla
+        // EfectoVisualGlobal
+       /* EfectoVisualGlobal.dibujar(
+            {
+                ...fig,
+                x: 0,
+                y: 0
+            },
+            fig.type,
+            this.cellSize
+        ); */
+        EfectoVisualGlobal.dibujar(
+            fig,
+            fig.type,
+            this.cellSize
+        );
 
         pop();
     }
 
+    pop();
+}
     mousePressed() {
 
         if (this.completed) return;
