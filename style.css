@@ -1,17 +1,26 @@
 html,
-body{
-
-margin:0;
-padding:0;
-
-overflow:hidden;
-
-background:#000000;
-
+body {
+	width: 100%;
+	min-height: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background: #222222;
 }
 
-canvas{
+body {
+	min-height: 100dvh;
+	touch-action: none;
+}
 
-display:block;
+canvas {
+	display: block;
+	width: 100% !important;
+	height: 100dvh !important;
+}
 
+@media (max-width: 767px) {
+	canvas {
+		height: 100svh !important;
+	}
 }

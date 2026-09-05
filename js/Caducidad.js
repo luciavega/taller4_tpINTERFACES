@@ -5,92 +5,84 @@ class Caducidad {
         this.y = y;
         this.w = w;
         this.h = h;
+        this.grupo = "pasado";
         this.figuras = [];
+        this.ultimoTiempo = millis();
+        this.tiempoInicio = millis();
+        this.reinicioPendiente = false;
+        this.tiempoReinicioInicio = 0;
         this.crearFiguras();
     }
 
     crearFiguras() {
-        // Paletas extraídas de EfectoVisualGlobal:
+        const centroX = this.w * 0.5;
+        const centroY = this.h * 0.52;
 
-        // Verde y Amarillo (Paleta T) -> Triángulos
-        const paletaVerdeAmarillo = [
-            [255, 230, 30],
-            [180, 240, 60],
-            [80, 230, 180],
-            [30, 190, 230]
+        const disposicion = [
+            { tipo: "triangulo", x: 0.24, y: 0.34, tam: 42, margen: 10 },
+            { tipo: "cuadrado", x: 0.38, y: 0.24, tam: 34, margen: 12 },
+            { tipo: "circulo", x: 0.46, y: 0.42, tam: 48, margen: 8 },
+            { tipo: "cuadrado", x: 0.56, y: 0.30, tam: 32, margen: 14 },
+            { tipo: "triangulo", x: 0.72, y: 0.38, tam: 41, margen: 22 },
+            { tipo: "circulo", x: 0.34, y: 0.58, tam: 44, margen: 10 },
+            { tipo: "triangulo", x: 0.50, y: 0.64, tam: 40, margen: 6 },
+            { tipo: "cuadrado", x: 0.65, y: 0.60, tam: 36, margen: 12 },
+            { tipo: "triangulo", x: 0.42, y: 0.76, tam: 35, margen: 10 },
+            { tipo: "circulo", x: 0.28, y: 0.80, tam: 42, margen: 18 },
+            { tipo: "cuadrado", x: 0.60, y: 0.80, tam: 33, margen: 12 },
+            { tipo: "circulo", x: 0.74, y: 0.72, tam: 38, margen: 24 }
         ];
 
-        // Naranja y Amarillo (Paleta Q) -> Cuadrados
-        const paletaNaranjaAmarillo = [
-            [255, 30, 40],
-            [255, 70, 20],
-            [255, 150, 20],
-            [255, 220, 40]
-        ];
+        this.figuras = disposicion.map((base, index) => {
+            const offsetX = random(-base.margen, base.margen);
+            const offsetY = random(-base.margen * 0.8, base.margen * 0.8);
+            const baseTam = base.tam + random(-4, 6);
+            const tipoVisual = base.tipo === "circulo" ? "C" : base.tipo === "cuadrado" ? "Q" : "T";
+            const x = centroX + (base.x - 0.5) * (this.w * 0.8) + offsetX;
+            const y = centroY + (base.y - 0.5) * (this.h * 0.7) + offsetY;
 
-        // Azul y Rosa (Paleta C) -> Círculos
-        const paletaAzulRosa = [
-            [20, 50, 255],
-            [80, 20, 255],
-            [220, 20, 220],
-            [255, 70, 150]
-        ];
-
-        const izquierda      = this.w * 0.30;
-        const izquierdaCerca = this.w * 0.43;
-        const derechaCerca   = this.w * 0.57;
-        const derecha        = this.w * 0.70;
-
-        const arriba = this.h * 0.27;
-        const medio  = this.h * 0.50;
-        const abajo  = this.h * 0.73;
-
-        // Generamos puntos de grano estáticos para cada figura
-        const generarGrano = (tam) => {
-            const puntos = [];
-            for (let i = 0; i < 180; i++) {
-                puntos.push({
-                    x: random(-tam / 2, tam / 2),
-                    y: random(-tam / 2, tam / 2),
-                    tam: random(1.0, 2.0),
-                    opacidad: random(0.03, 0.08)
-                });
-            }
-            return puntos;
-        };
-
-        this.figuras = [
-            // Fila superior
-            { tipo: "triangulo", x: izquierda,      y: arriba, tam: 38, escala: 1, deterioro: 0, opacidad: 255, paleta: paletaVerdeAmarillo,  fase: random(TWO_PI), grano: generarGrano(38) },
-            { tipo: "cuadrado",  x: izquierdaCerca, y: arriba, tam: 30, escala: 1, deterioro: 0, opacidad: 255, paleta: paletaNaranjaAmarillo, fase: random(TWO_PI), grano: generarGrano(30) },
-            { tipo: "cuadrado",  x: derechaCerca,   y: arriba, tam: 30, escala: 1, deterioro: 0, opacidad: 255, paleta: paletaNaranjaAmarillo, fase: random(TWO_PI), grano: generarGrano(30) },
-            { tipo: "triangulo", x: derecha,        y: arriba, tam: 38, escala: 1, deterioro: 0, opacidad: 255, paleta: paletaVerdeAmarillo,  fase: random(TWO_PI), grano: generarGrano(38) },
-
-            // Centro
-            { tipo: "circulo", x: izquierdaCerca, y: medio, tam: 46, escala: 1, deterioro: 0, opacidad: 255, paleta: paletaAzulRosa, fase: random(TWO_PI), grano: generarGrano(46) },
-            { tipo: "circulo", x: derechaCerca,   y: medio, tam: 46, escala: 1, deterioro: 0, opacidad: 255, paleta: paletaAzulRosa, fase: random(TWO_PI), grano: generarGrano(46) },
-
-            // Fila inferior
-            { tipo: "triangulo", x: izquierda,      y: abajo, tam: 38, escala: 1, deterioro: 0, opacidad: 255, paleta: paletaVerdeAmarillo,  fase: random(TWO_PI), grano: generarGrano(38) },
-            { tipo: "cuadrado",  x: izquierdaCerca, y: abajo, tam: 30, escala: 1, deterioro: 0, opacidad: 255, paleta: paletaNaranjaAmarillo, fase: random(TWO_PI), grano: generarGrano(30) },
-            { tipo: "cuadrado",  x: derechaCerca,   y: abajo, tam: 30, escala: 1, deterioro: 0, opacidad: 255, paleta: paletaNaranjaAmarillo, fase: random(TWO_PI), grano: generarGrano(30) },
-            { tipo: "triangulo", x: derecha,        y: abajo, tam: 38, escala: 1, deterioro: 0, opacidad: 255, paleta: paletaVerdeAmarillo,  fase: random(TWO_PI), grano: generarGrano(38) }
-        ];
+            return {
+                tipo: base.tipo,
+                tipoVisual,
+                x,
+                y,
+                tam: baseTam,
+                escala: 1,
+                deterioro: 0,
+                opacidad: 255,
+                activada: false,
+                retardada: 0,
+                marchitando: false,
+                propagada: false,
+                link: null
+            };
+        });
     }
 
-    mousePressed() {
-        const mx = mouseX - this.x;
-        const my = mouseY - this.y;
+    activarCaducidad(fig, retraso = 0) {
+        if (!fig || fig.activada || fig.marchitando) return;
 
-        if (mx < 0 || mx > this.w || my < 0 || my > this.h) return;
+        fig.activada = true;
+        fig.marchitando = false;
+        fig.retardada = retraso;
+        fig.propagada = false;
+        fig.link = null;
+    }
 
-        for (let f of this.figuras) {
-            if (this.figuraFueTocada(f, mx, my)) {
-                // El deterioro aumenta el tono amarronado permanentemente
-                f.deterioro = min(1, f.deterioro + 0.20);
-                f.escala = max(0.62, f.escala - 0.065);
-                f.opacidad = max(25, f.opacidad - 38);
-                return;
+    propagarCaducidad(figura) {
+        if (!figura || figura.propagada) return;
+
+        figura.propagada = true;
+
+        for (const vecino of this.figuras) {
+            if (vecino === figura || vecino.activada || vecino.marchitando) continue;
+
+            const distancia = dist(figura.x, figura.y, vecino.x, vecino.y);
+            const umbral = max(80, (figura.tam + vecino.tam) * 0.8);
+
+            if (distancia <= umbral) {
+                const retraso = distancia * 12 + random(35, 115);
+                this.activarCaducidad(vecino, retraso);
             }
         }
     }
@@ -100,80 +92,85 @@ class Caducidad {
         const d = dist(mx, my, f.x, f.y);
 
         if (f.tipo === "circulo") {
-            return d <= radio;
+            return d <= radio * 1.05;
         }
-        return d <= radio * 1.05;
+        return d <= radio * 1.12;
+    }
+
+    mousePressed() {
+        const mx = mouseX - this.x;
+        const my = mouseY - this.y;
+
+        if (mx < 0 || mx > this.w || my < 0 || my > this.h) return;
+
+        for (const f of this.figuras) {
+            if (this.figuraFueTocada(f, mx, my)) {
+                this.activarCaducidad(f, 0);
+                return;
+            }
+        }
+    }
+
+    todasLasFigurasCaducadas() {
+        if (this.figuras.length === 0) return false;
+
+        return this.figuras.every(f => {
+            const terminada = !f.activada && !f.marchitando && f.opacidad <= 2 && f.escala <= 0.30;
+            return terminada;
+        });
     }
 
     update() {
-        // Mantiene la estructura limpia
+        const ahora = millis();
+        const delta = ahora - this.ultimoTiempo;
+        this.ultimoTiempo = ahora;
+
+        if (this.reinicioPendiente) {
+            if (ahora - this.tiempoReinicioInicio >= 2000) {
+                this.reinicioPendiente = false;
+                this.tiempoReinicioInicio = 0;
+                this.crearFiguras();
+            }
+            return;
+        }
+
+        if (this.todasLasFigurasCaducadas()) {
+            this.reinicioPendiente = true;
+            this.tiempoReinicioInicio = ahora;
+            return;
+        }
+
+        for (const f of this.figuras) {
+            if (!f.activada) continue;
+
+            if (!f.marchitando) {
+                f.retardada -= delta;
+                if (f.retardada <= 0) {
+                    f.marchitando = true;
+                }
+                continue;
+            }
+
+            f.deterioro = min(1, f.deterioro + 0.013 * (delta / 16.7));
+            f.escala = max(0.22, f.escala - 0.005 * (delta / 16.7));
+            f.opacidad = max(0, f.opacidad - 0.85 * (delta / 16.7));
+
+            if (f.deterioro > 0.12 && !f.propagada) {
+                this.propagarCaducidad(f);
+            }
+
+            if (f.opacidad <= 0 || f.escala <= 0.22) {
+                f.activada = false;
+                f.marchitando = false;
+                f.propagada = false;
+                f.opacidad = 0;
+            }
+        }
     }
 
-    // Dibuja la figura internamente con su propio gradiente y tono amarronado
-    dibujarEfectoPropio(f) {
-        const ctx = drawingContext;
-        const tiempo = millis() * 0.0002 + f.fase;
-        const tam = f.tam;
-
-        // Movimiento sutil del gradiente interno
-        const x1 = sin(tiempo) * tam * 0.5;
-        const y1 = cos(tiempo) * tam * 0.5;
-        const x2 = -x1;
-        const y2 = -y1;
-
-        const gradiente = ctx.createLinearGradient(x1, y1, x2, y2);
-
-        // Definimos la mezcla de colores hacia tonos amarronados/sepia
-        for (let i = 0; i < f.paleta.length; i++) {
-            const base = f.paleta[i];
-            
-            // Paleta destino amarronada (Sepia/Café)
-            const rMarron = 135 + (i * 15);
-            const gMarron = 85 + (i * 10);
-            const bMarron = 45 + (i * 5);
-
-            // Interpolación directa
-            const r = lerp(base[0], rMarron, f.deterioro);
-            const g = lerp(base[1], gMarron, f.deterioro);
-            const b = lerp(base[2], bMarron, f.deterioro);
-
-            gradiente.addColorStop(i / (f.paleta.length - 1), `rgb(${Math.floor(r)},${Math.floor(g)},${Math.floor(b)})`);
-        }
-
-        ctx.save();
-
-        // 1. Crear Trazado de la forma
-        ctx.beginPath();
-        if (f.tipo === "cuadrado") {
-            ctx.rect(-tam / 2, -tam / 2, tam, tam);
-        } else if (f.tipo === "circulo") {
-            ctx.arc(0, 0, tam / 2, 0, TWO_PI);
-        } else if (f.tipo === "triangulo") {
-            ctx.moveTo(0, -tam / 2);
-            ctx.lineTo(tam / 2, tam / 2);
-            ctx.lineTo(-tam / 2, tam / 2);
-            ctx.closePath();
-        }
-
-        // 2. Rellenar con Gradiente
-        ctx.fillStyle = gradiente;
-        ctx.fill();
-
-        // 3. Aplicar Textura Estática de Grano
-        ctx.clip();
-        ctx.fillStyle = "white";
-        for (let p of f.grano) {
-            ctx.globalAlpha = p.opacidad;
-            ctx.fillRect(p.x, p.y, p.tam, p.tam);
-        }
-
-        ctx.restore();
-    }
-
-    draw() {
+    draw(actualizar = true) {
         push();
 
-        // Delimitación segura de recuadro
         drawingContext.save();
         drawingContext.beginPath();
         drawingContext.rect(this.x, this.y, this.w, this.h);
@@ -181,34 +178,23 @@ class Caducidad {
 
         translate(this.x, this.y);
 
-        // Fondo del recuadro
         noStroke();
         rectMode(CORNER);
-        fill(235);
+        fill(34, 34, 34);
         rect(0, 0, this.w, this.h);
 
-        // Línea central
-        stroke(255, 140, 0);
-        strokeWeight(4);
-        line(this.w / 2, this.h * 0.20, this.w / 2, this.h * 0.80);
-
-        // Dibujar figuras de forma aislada
         for (let f of this.figuras) {
             push();
             translate(f.x, f.y);
-            scale(f.escala);
+            scale(f.escala * 1.3);
 
             drawingContext.save();
             drawingContext.globalAlpha = map(f.opacidad, 0, 255, 0, 1);
-
-            // Efecto visual propio autocontenido
-            this.dibujarEfectoPropio(f);
-
+            EfectoVisualGlobal.dibujar(f, f.tipoVisual, f.tam);
             drawingContext.restore();
             pop();
         }
 
-        // Restauración completa del lienzo
         drawingContext.restore();
         drawingContext.globalAlpha = 1.0;
         pop();

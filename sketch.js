@@ -12,7 +12,7 @@ textFont("Arial");
 
 function draw(){
 
-background(0);
+background(34, 34, 34);
 
 sistema.update();
 sistema.draw();
@@ -29,12 +29,12 @@ sistema = new Sistema();
 
 function mousePressed(){
 
-    for(let p of sistema.paneles){
+    sistema.mousePressed();
 
-        if(typeof p.mousePressed === 'function'){
-            p.mousePressed();
-        }
+}
 
-    }
+function mouseReleased(){
+
+    sistema.mouseReleased();
 
 }

@@ -1,122 +1,622 @@
 class Empatia {
+
     constructor(x, y, w, h) {
+
         this.x = x;
         this.y = y;
         this.w = w;
         this.h = h;
 
+        this.grupo = "presente";
+
         this.figuraArrastrada = null;
+        this.grupoOrigen = null;
+        this.grupoDestino = null;
+
         this.crearComposicion();
     }
 
+
+    // =========================================================
+    // CREAR COMPOSICIÓN
+    // =========================================================
+
     crearComposicion() {
+
         let rosa = color(255, 0, 120);
+        let amarillo = color(255, 200, 0);
         let azul = color(40, 120, 255);
 
-        // Se mapean los tipos a "C" y "T" para que coincidan con las claves de EfectoVisualGlobal
+
         this.figuras = [
-            { id: 0, tipo: "C", grupo: "circulos", x: 0.20, y: 0.35, tam: 55, c: rosa, sync: 0, offsetFase: 0 },
-            { id: 1, tipo: "C", grupo: "circulos", x: 0.30, y: 0.65, tam: 55, c: rosa, sync: 0, offsetFase: 2 },
-            { id: 2, tipo: "C", grupo: "circulos", x: 0.15, y: 0.50, tam: 55, c: rosa, sync: 0, offsetFase: 4 },
-            
-            { id: 3, tipo: "T", grupo: "triangulos", x: 0.75, y: 0.35, tam: 60, c: azul, sync: 0, offsetFase: 0 },
-            { id: 4, tipo: "T", grupo: "triangulos", x: 0.85, y: 0.50, tam: 60, c: azul, sync: 0, offsetFase: 2.5 },
-            { id: 5, tipo: "T", grupo: "triangulos", x: 0.70, y: 0.65, tam: 60, c: azul, sync: 0, offsetFase: 5 }
+
+            // CÍRCULOS
+
+            {
+                id: 0,
+                tipo: "C",
+                grupo: "circulos",
+                grupoOriginal: "circulos",
+                tam: 30,
+                tamVisual: 30,
+                x: 0.16 + random(-0.018, 0.018),
+                y: 0.35 + random(-0.025, 0.025),
+                c: rosa,
+                offsetFase: 0
+            },
+
+            {
+                id: 1,
+                tipo: "C",
+                grupo: "circulos",
+                grupoOriginal: "circulos",
+                tam: 30,
+                tamVisual: 30,
+                x: 0.27 + random(-0.018, 0.018),
+                y: 0.52 + random(-0.025, 0.025),
+                c: rosa,
+                offsetFase: 2
+            },
+
+            {
+                id: 2,
+                tipo: "C",
+                grupo: "circulos",
+                grupoOriginal: "circulos",
+                tam: 30,
+                tamVisual: 30,
+                x: 0.18 + random(-0.018, 0.018),
+                y: 0.68 + random(-0.025, 0.025),
+                c: rosa,
+                offsetFase: 4
+            },
+
+
+            // CUADRADOS
+
+            {
+                id: 3,
+                tipo: "Q",
+                grupo: "cuadrados",
+                grupoOriginal: "cuadrados",
+                tam: 52,
+                tamVisual: 52,
+                x: 0.46 + random(-0.018, 0.018),
+                y: 0.30 + random(-0.025, 0.025),
+                c: amarillo,
+                offsetFase: 0
+            },
+
+            {
+                id: 4,
+                tipo: "Q",
+                grupo: "cuadrados",
+                grupoOriginal: "cuadrados",
+                tam: 52,
+                tamVisual: 52,
+                x: 0.55 + random(-0.018, 0.018),
+                y: 0.50 + random(-0.025, 0.025),
+                c: amarillo,
+                offsetFase: 2
+            },
+
+            {
+                id: 5,
+                tipo: "Q",
+                grupo: "cuadrados",
+                grupoOriginal: "cuadrados",
+                tam: 52,
+                tamVisual: 52,
+                x: 0.45 + random(-0.018, 0.018),
+                y: 0.68 + random(-0.025, 0.025),
+                c: amarillo,
+                offsetFase: 4
+            },
+
+
+            // TRIÁNGULOS
+
+            {
+                id: 6,
+                tipo: "T",
+                grupo: "triangulos",
+                grupoOriginal: "triangulos",
+                tam: 110,
+                tamVisual: 110,
+                x: 0.72 + random(-0.018, 0.018),
+                y: 0.35 + random(-0.025, 0.025),
+                c: azul,
+                offsetFase: 0
+            },
+
+            {
+                id: 7,
+                tipo: "T",
+                grupo: "triangulos",
+                grupoOriginal: "triangulos",
+                tam: 110,
+                tamVisual: 110,
+                x: 0.83 + random(-0.018, 0.018),
+                y: 0.50 + random(-0.025, 0.025),
+                c: azul,
+                offsetFase: 2
+            },
+
+            {
+                id: 8,
+                tipo: "T",
+                grupo: "triangulos",
+                grupoOriginal: "triangulos",
+                tam: 110,
+                tamVisual: 110,
+                x: 0.72 + random(-0.018, 0.018),
+                y: 0.67 + random(-0.025, 0.025),
+                c: azul,
+                offsetFase: 4
+            }
         ];
     }
 
+
+    // =========================================================
+    // DETECTAR ZONA
+    // =========================================================
+
+    detectarGrupo(x) {
+
+        let posicion =
+            (x - this.x) / this.w;
+
+
+        if (posicion < 1 / 3) {
+            return "circulos";
+        }
+
+        if (posicion < 2 / 3) {
+            return "cuadrados";
+        }
+
+        return "triangulos";
+    }
+
+
+    // =========================================================
+    // CAMBIAR VISUALMENTE TODO EL GRUPO
+    // =========================================================
+
+    cambiarTamanoGrupo(nombreGrupo, nuevoTamano) {
+
+        for (let f of this.figuras) {
+
+            // IMPORTANTE:
+            // solamente modificamos las figuras
+            // ORIGINALES de ese grupo.
+
+            if (
+                f.grupoOriginal === nombreGrupo
+            ) {
+
+                f.tamVisual =
+                    nuevoTamano;
+            }
+        }
+    }
+
+
+    // =========================================================
+    // RESTAURAR TODO EL GRUPO
+    // =========================================================
+
+    restaurarGrupo(nombreGrupo) {
+
+        for (let f of this.figuras) {
+
+            if (
+                f.grupoOriginal === nombreGrupo
+            ) {
+
+                f.tamVisual =
+                    f.tam;
+            }
+        }
+    }
+
+
+    // =========================================================
+    // UPDATE
+    // =========================================================
+
     update() {
-        const dentro = mouseX >= this.x &&
+
+        let dentroPanel =
+            mouseX >= this.x &&
             mouseX <= this.x + this.w &&
             mouseY >= this.y &&
             mouseY <= this.y + this.h;
 
-        if (dentro && mouseIsPressed) {
+
+        // =====================================================
+        // MOUSE PRESIONADO
+        // =====================================================
+
+        if (
+            dentroPanel &&
+            mouseIsPressed
+        ) {
+
+
+            // =================================================
+            // SELECCIONAR FIGURA
+            // =================================================
+
             if (!this.figuraArrastrada) {
+
                 for (let f of this.figuras) {
-                    let fx = this.x + f.x * this.w;
-                    let fy = this.y + f.y * this.h;
-                    if (dist(mouseX, mouseY, fx, fy) < f.tam / 2) {
-                        this.figuraArrastrada = f;
+
+                    let px =
+                        this.x + f.x * this.w;
+
+                    let py =
+                        this.y + f.y * this.h;
+
+
+                    if (
+                        dist(
+                            mouseX,
+                            mouseY,
+                            px,
+                            py
+                        ) < f.tamVisual / 2
+                    ) {
+
+                        this.figuraArrastrada =
+                            f;
+
+                        this.grupoOrigen =
+                            f.grupo;
+
+                        this.grupoDestino =
+                            null;
+
+
+                        // -------------------------------------
+                        // SI ESTABA DENTRO DE OTRO GRUPO,
+                        // LO RESTAURAMOS
+                        // -------------------------------------
+
+                        if (
+                            this.grupoOrigen &&
+                            this.grupoOrigen !== f.grupoOriginal
+                        ) {
+
+                            this.restaurarGrupo(
+                                this.grupoOrigen
+                            );
+                        }
+
+
+                        // Si era una figura original de su grupo
+                        // y ese grupo estaba modificado,
+                        // también vuelve a su tamaño base.
+
+                        if (this.grupoOrigen) {
+
+                            this.restaurarGrupo(
+                                this.grupoOrigen
+                            );
+                        }
+
+
+                        // La figura queda temporalmente fuera.
+
+                        f.grupo = null;
+
+
+                        // Conserva SIEMPRE su tamaño original.
+
+                        f.tamVisual =
+                            f.tam;
+
+
                         break;
                     }
                 }
             }
+
+
+            // =================================================
+            // MOVER FIGURA
+            // =================================================
+
             if (this.figuraArrastrada) {
-                let nuevoX = constrain(mouseX, this.x, this.x + this.w);
-                let nuevoY = constrain(mouseY, this.y, this.y + this.h);
-                this.figuraArrastrada.x = (nuevoX - this.x) / this.w;
-                this.figuraArrastrada.y = (nuevoY - this.y) / this.h;
+
+                let f =
+                    this.figuraArrastrada;
+
+
+                let nuevoX =
+                    constrain(
+                        mouseX,
+                        this.x,
+                        this.x + this.w
+                    );
+
+
+                let nuevoY =
+                    constrain(
+                        mouseY,
+                        this.y,
+                        this.y + this.h
+                    );
+
+
+                f.x =
+                    (nuevoX - this.x) / this.w;
+
+
+                f.y =
+                    (nuevoY - this.y) / this.h;
+
+
+                // ---------------------------------------------
+                // DETECTAR ZONA
+                // ---------------------------------------------
+
+                let grupoActual =
+                    this.detectarGrupo(
+                        nuevoX
+                    );
+
+
+                // ---------------------------------------------
+                // ENTRÓ EN OTRO GRUPO
+                // ---------------------------------------------
+
+                if (
+                    grupoActual &&
+                    grupoActual !== this.grupoOrigen
+                ) {
+
+
+                    // Si cambió de grupo destino,
+                    // restauramos el anterior.
+
+                    if (
+                        this.grupoDestino &&
+                        this.grupoDestino !== grupoActual
+                    ) {
+
+                        this.restaurarGrupo(
+                            this.grupoDestino
+                        );
+                    }
+
+
+                    this.grupoDestino =
+                        grupoActual;
+
+
+                    // =================================================
+                    // ACÁ ESTÁ LA CLAVE
+                    // =================================================
+                    //
+                    // Modificamos explícitamente las 3 figuras.
+                    // =================================================
+
+                    this.cambiarTamanoGrupo(
+                        grupoActual,
+                        f.tam
+                    );
+
+
+                    // La figura arrastrada mantiene
+                    // su propio tamaño.
+
+                    f.tamVisual =
+                        f.tam;
+                }
+
+
+                // ---------------------------------------------
+                // VOLVIÓ AL GRUPO ORIGINAL
+                // ---------------------------------------------
+
+                else if (
+                    grupoActual === this.grupoOrigen
+                ) {
+
+                    if (this.grupoDestino) {
+
+                        this.restaurarGrupo(
+                            this.grupoDestino
+                        );
+                    }
+
+
+                    this.restaurarGrupo(
+                        this.grupoOrigen
+                    );
+
+
+                    this.grupoDestino =
+                        null;
+
+
+                    f.tamVisual =
+                        f.tam;
+                }
             }
-        } else {
-            this.figuraArrastrada = null;
         }
 
-        for (let f of this.figuras) {
-            const umbral = 0.5;
-            const margen = 0.03;
-            let targetSync = 0;
 
-            if (f.grupo === "circulos" && f.x > umbral + margen) {
-                targetSync = 1;
-            } else if (f.grupo === "triangulos" && f.x < umbral - margen) {
-                targetSync = 1;
+        // =====================================================
+        // MOUSE SOLTADO
+        // =====================================================
+
+        else {
+
+            if (this.figuraArrastrada) {
+
+                let f =
+                    this.figuraArrastrada;
+
+
+                if (this.grupoDestino) {
+
+                    // La figura queda en el nuevo grupo.
+
+                    f.grupo =
+                        this.grupoDestino;
+
+
+                    // PERO mantiene su tamaño propio.
+
+                    f.tamVisual =
+                        f.tam;
+                }
+
+                else {
+
+                    f.grupo = null;
+
+                    f.tamVisual =
+                        f.tam;
+                }
+
+
+                this.figuraArrastrada =
+                    null;
+
+                this.grupoOrigen =
+                    null;
             }
-
-            f.sync = lerp(f.sync, targetSync, 0.08);
         }
     }
 
+
+    // =========================================================
+    // DIBUJAR
+    // =========================================================
+
     dibujarFigura(f) {
-        let px = this.x + f.x * this.w;
-        let py = this.y + f.y * this.h;
 
-        let patronCirculoX = sin(frameCount * 0.05 + f.offsetFase) * 18;
-        let patronCirculoY = 0;
+        let px =
+            this.x + f.x * this.w;
 
-        let patronTrianguloX = 0;
-        let patronTrianguloY = sin(frameCount * 0.05 + f.offsetFase) * 18;
+        let py =
+            this.y + f.y * this.h;
 
-        let despX = 0;
-        let despY = 0;
 
-        if (f.grupo === "circulos") {
-            despX = lerp(patronCirculoX, patronTrianguloX, f.sync);
-            despY = lerp(patronCirculoY, patronTrianguloY, f.sync);
-        } else {
-            despX = lerp(patronTrianguloX, patronCirculoX, f.sync);
-            despY = lerp(patronTrianguloY, patronCirculoY, f.sync);
+        // =====================================================
+        // USAMOS DIRECTAMENTE tamVisual
+        // =====================================================
+
+        let tam =
+            f.tamVisual;
+
+
+        // =====================================================
+        // MOVIMIENTO
+        // =====================================================
+
+        let despX =
+            sin(frameCount * 0.022 + f.offsetFase) * 2.5;
+
+        let despY =
+            cos(frameCount * 0.019 + f.offsetFase) * 2.5;
+
+
+        if (f.tipo === "C") {
+
+            despX +=
+                sin(frameCount * 0.03 + f.offsetFase) * 3.5;
         }
 
+
+        if (f.tipo === "T") {
+
+            despY +=
+                sin(frameCount * 0.03 + f.offsetFase) * 3.5;
+        }
+
+
         push();
-        translate(px + despX, py + despY);
+
+        translate(
+            px + despX,
+            py + despY
+        );
+
         noStroke();
 
-        // Aplicar la representación visual desde EfectoVisualGlobal
-        EfectoVisualGlobal.dibujar(f, f.tipo, f.tam);
+
+        EfectoVisualGlobal.dibujar(
+            f,
+            f.tipo,
+            tam
+        );
+
 
         pop();
     }
 
-    draw() {
-        this.update();
+
+    // =========================================================
+    // DRAW
+    // =========================================================
+
+    draw(actualizar = true) {
+
+        if (actualizar) {
+            this.update();
+        }
+
+
+        EfectoVisualGlobal.grupoActual =
+            this.grupo;
+
 
         push();
 
+
         drawingContext.save();
+
         drawingContext.beginPath();
-        drawingContext.rect(this.x, this.y, this.w, this.h);
+
+        drawingContext.rect(
+            this.x,
+            this.y,
+            this.w,
+            this.h
+        );
+
         drawingContext.clip();
 
+
+        // Fondo
+
         noStroke();
-        fill(245);
-        rect(this.x, this.y, this.w, this.h);
+
+        fill(34, 34, 34);
+
+        rect(
+            this.x,
+            this.y,
+            this.w,
+            this.h
+        );
+
+
+        // Figuras
 
         for (let f of this.figuras) {
+
             this.dibujarFigura(f);
         }
 
+
         drawingContext.restore();
+
         pop();
     }
 }
