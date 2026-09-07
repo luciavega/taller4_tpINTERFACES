@@ -45,6 +45,7 @@ class Caducidad {
             return {
                 tipo: base.tipo,
                 tipoVisual,
+                grupo: this.grupo,
                 x,
                 y,
                 tam: baseTam,
@@ -53,6 +54,7 @@ class Caducidad {
                 opacidad: 255,
                 activada: false,
                 retardada: 0,
+                velocidadPudricion: 1,
                 marchitando: false,
                 propagada: false,
                 contagiada: false,
@@ -61,15 +63,24 @@ class Caducidad {
         });
     }
 
-    activarCaducidad(fig, retraso = 0) {
+    activarCaducidad(fig, retraso = 0, velocidadPudricion = 1) {
         if (!fig || fig.activada || fig.marchitando || fig.contagiada) return;
 
         fig.activada = true;
         fig.marchitando = false;
         fig.retardada = retraso;
+        fig.velocidadPudricion = velocidadPudricion;
         fig.propagada = false;
         fig.contagiada = true;
         fig.link = null;
+    }
+
+    acelerarCaducidad(fig) {
+        if (!fig || !fig.contagiada) return;
+
+        fig.velocidadPudricion = min(3, max(1, fig.velocidadPudricion) * 1.5);
+        fig.retardada = 0;
+        fig.marchitando = true;
     }
 
     propagarCaducidad(figura) {
@@ -114,7 +125,7 @@ class Caducidad {
                 const retrasoEscalonado = infectados * 200;
                 const retraso = factorDistancia + retrasoEscalonado + random(50, 150);
 
-                this.activarCaducidad(c.figura, retraso);
+                this.activarCaducidad(c.figura, retraso, 0.42);
                 infectados++;
             }
         }
@@ -125,7 +136,7 @@ class Caducidad {
         if (infectados === 0) {
             const masCercano = candidatos[0];
             const retraso = 300 + random(100, 250);
-            this.activarCaducidad(masCercano.figura, retraso);
+            this.activarCaducidad(masCercano.figura, retraso, 0.42);
         }
     }
 
@@ -148,7 +159,11 @@ class Caducidad {
 
         for (const f of this.figuras) {
             if (this.figuraFueTocada(f, mx, my)) {
-                this.activarCaducidad(f, 0); // La tocada inicia al instante (0 retraso)
+                if (f.contagiada) {
+                    this.acelerarCaducidad(f);
+                } else {
+                    this.activarCaducidad(f, 0);
+                }
                 return;
             }
         }
@@ -202,17 +217,17 @@ class Caducidad {
 
             f.deterioro = min(
                 1,
-                f.deterioro + 0.013 * (delta / 16.7)
+                f.deterioro + 0.013 * f.velocidadPudricion * (delta / 16.7)
             );
 
             f.escala = max(
                 0.22,
-                f.escala - 0.005 * (delta / 16.7)
+                f.escala - 0.005 * f.velocidadPudricion * (delta / 16.7)
             );
 
             f.opacidad = max(
                 0,
-                f.opacidad - 0.85 * (delta / 16.7)
+                f.opacidad - 0.85 * f.velocidadPudricion * (delta / 16.7)
             );
 
             // Una vez que comienza a pudrirse visiblemente y no ha propagado antes, desata el efecto
@@ -234,6 +249,8 @@ class Caducidad {
     draw(actualizar = true) {
         push();
 
+        EfectoVisualGlobal.grupoActual = this.grupo;
+
         drawingContext.save();
         drawingContext.beginPath();
         drawingContext.rect(
@@ -250,22 +267,6 @@ class Caducidad {
         rectMode(CORNER);
         fill(34, 34, 34);
         rect(0, 0, this.w, this.h);
-
-        const interaccionActiva = mouseIsPressed &&
-            mouseX >= this.x && mouseX <= this.x + this.w &&
-            mouseY >= this.y && mouseY <= this.y + this.h;
-        if (interaccionActiva) {
-            drawingContext.save();
-            drawingContext.globalAlpha = 0.24;
-            stroke(234, 139, 47, 125);
-            strokeWeight(1.2);
-            for (let indice = 0; indice < 90; indice++) {
-                const px = ((indice * 137 + frameCount * 0.7) % this.w);
-                const py = ((indice * 79 + frameCount * 0.35) % this.h);
-                line(px, py, px + 18, py - 12);
-            }
-            drawingContext.restore();
-        }
 
         for (let f of this.figuras) {
             push();
