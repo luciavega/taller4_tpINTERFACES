@@ -207,15 +207,36 @@ class Colaboracion {
     }
 
     dibujarFigura(f) {
-        let px = this.x + f.x * this.w;
-        let py = this.y + f.y * this.h;
-
-        let flotar = (1 - this.progresoAtraccion) * 2;
-        let offsetReposoX = sin(frameCount * 0.03 + f.fase) * flotar;
-        let offsetReposoY = cos(frameCount * 0.025 + f.fase) * flotar;
+        const px = this.x + f.x * this.w;
+        const py = this.y + f.y * this.h;
 
         push();
-        translate(px + offsetReposoX, py + offsetReposoY);
+        translate(px, py);
+
+        const animar = !this.figuraArrastrada && !this.huboMovimiento;
+        if (animar) {
+            translate(
+                sin(frameCount * 0.03 + f.fase) * 10,
+                cos(frameCount * 0.025 + f.fase) * 10
+            );
+
+            if (f.tipo === "Q") {
+                rotate(frameCount * 0.012 + f.fase);
+            }
+
+            if (f.tipo === "T") {
+                translate(
+                    sin(frameCount * 0.12 + f.fase) * 3.5,
+                    cos(frameCount * 0.16 + f.fase) * 3.5
+                );
+                rotate(sin(frameCount * 0.28 + f.fase) * 0.025);
+            }
+        }
+
+        const escalaVisual = animar && f.tipo === "C"
+            ? 1 + sin(frameCount * 0.032 + f.fase) * 0.16
+            : 1.06;
+        scale(escalaVisual);
         scale(1.28);
 
         if (typeof EfectoVisualGlobal !== "undefined" && typeof EfectoVisualGlobal.dibujar === "function") {

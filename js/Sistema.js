@@ -44,6 +44,20 @@ class Sistema {
         }));
     }
 
+    obtenerNombrePanel(indice) {
+        return [
+            "Memoria",
+            "Herencia",
+            "Caducidad",
+            "Identidad",
+            "Empatia",
+            "Colaboracion",
+            "Incertidumbre",
+            "Ansiedad",
+            "Expectativa"
+        ][indice];
+    }
+
     dibujarBotonVolver() {
         const tam = constrain(min(width, height) * 0.065, 38, 54);
         const x = 14;
@@ -133,6 +147,17 @@ class Sistema {
             }
 
             ctx.restore();
+
+            const alturaEtiqueta = constrain(min(width, height) * 0.045, 22, 34);
+            const nombre = this.obtenerNombrePanel(i);
+            push();
+            textSize(constrain(min(width, height) * 0.024, 12, 20));
+            textStyle(NORMAL);
+            noStroke();
+            textAlign(LEFT, CENTER);
+            fill(colores[1][0], colores[1][1], colores[1][2], 230);
+            text(nombre, miniatura.x + 14, miniatura.y + 8 + alturaEtiqueta / 2);
+            pop();
         }
     }
 

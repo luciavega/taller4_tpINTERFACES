@@ -41,8 +41,11 @@ class Empatia {
                 tamVisual: 30,
                 x: 0.16 + random(-0.018, 0.018),
                 y: 0.35 + random(-0.025, 0.025),
+                baseX: 0,
+                baseY: 0,
                 c: rosa,
-                offsetFase: 0
+                offsetFase: 0,
+                fase: random(TWO_PI)
             },
 
             {
@@ -54,8 +57,11 @@ class Empatia {
                 tamVisual: 30,
                 x: 0.27 + random(-0.018, 0.018),
                 y: 0.52 + random(-0.025, 0.025),
+                baseX: 0,
+                baseY: 0,
                 c: rosa,
-                offsetFase: 2
+                offsetFase: 2,
+                fase: random(TWO_PI)
             },
 
             {
@@ -67,8 +73,11 @@ class Empatia {
                 tamVisual: 30,
                 x: 0.18 + random(-0.018, 0.018),
                 y: 0.68 + random(-0.025, 0.025),
+                baseX: 0,
+                baseY: 0,
                 c: rosa,
-                offsetFase: 4
+                offsetFase: 4,
+                fase: random(TWO_PI)
             },
 
 
@@ -83,8 +92,11 @@ class Empatia {
                 tamVisual: 52,
                 x: 0.46 + random(-0.018, 0.018),
                 y: 0.30 + random(-0.025, 0.025),
+                baseX: 0,
+                baseY: 0,
                 c: amarillo,
-                offsetFase: 0
+                offsetFase: 0,
+                fase: random(TWO_PI)
             },
 
             {
@@ -96,8 +108,11 @@ class Empatia {
                 tamVisual: 52,
                 x: 0.55 + random(-0.018, 0.018),
                 y: 0.50 + random(-0.025, 0.025),
+                baseX: 0,
+                baseY: 0,
                 c: amarillo,
-                offsetFase: 2
+                offsetFase: 2,
+                fase: random(TWO_PI)
             },
 
             {
@@ -109,8 +124,11 @@ class Empatia {
                 tamVisual: 52,
                 x: 0.45 + random(-0.018, 0.018),
                 y: 0.68 + random(-0.025, 0.025),
+                baseX: 0,
+                baseY: 0,
                 c: amarillo,
-                offsetFase: 4
+                offsetFase: 4,
+                fase: random(TWO_PI)
             },
 
 
@@ -125,8 +143,11 @@ class Empatia {
                 tamVisual: 110,
                 x: 0.72 + random(-0.018, 0.018),
                 y: 0.35 + random(-0.025, 0.025),
+                baseX: 0,
+                baseY: 0,
                 c: azul,
-                offsetFase: 0
+                offsetFase: 0,
+                fase: random(TWO_PI)
             },
 
             {
@@ -138,8 +159,11 @@ class Empatia {
                 tamVisual: 110,
                 x: 0.83 + random(-0.018, 0.018),
                 y: 0.50 + random(-0.025, 0.025),
+                baseX: 0,
+                baseY: 0,
                 c: azul,
-                offsetFase: 2
+                offsetFase: 2,
+                fase: random(TWO_PI)
             },
 
             {
@@ -151,10 +175,19 @@ class Empatia {
                 tamVisual: 110,
                 x: 0.72 + random(-0.018, 0.018),
                 y: 0.67 + random(-0.025, 0.025),
+                baseX: 0,
+                baseY: 0,
                 c: azul,
-                offsetFase: 4
+                offsetFase: 4,
+                fase: random(TWO_PI)
             }
         ];
+
+        for (const figura of this.figuras) {
+            figura.baseX = figura.x;
+            figura.baseY = figura.y;
+            figura.tamObjetivo = figura.tam;
+        }
     }
 
 
@@ -196,7 +229,7 @@ class Empatia {
                 f.grupoOriginal === nombreGrupo
             ) {
 
-                f.tamVisual =
+                f.tamObjetivo =
                     nuevoTamano;
             }
         }
@@ -215,7 +248,7 @@ class Empatia {
                 f.grupoOriginal === nombreGrupo
             ) {
 
-                f.tamVisual =
+                f.tamObjetivo =
                     f.tam;
             }
         }
@@ -477,12 +510,22 @@ class Empatia {
 
                 else {
 
+            for (const figura of this.figuras) {
+                if (figura !== this.figuraArrastrada) {
+                    const objetivoX = figura.baseX + sin(frameCount * 0.012 + figura.fase) * 0.018;
+                    const objetivoY = figura.baseY + cos(frameCount * 0.010 + figura.fase) * 0.018;
+                    figura.x = lerp(figura.x, objetivoX, 0.035);
+                    figura.y = lerp(figura.y, objetivoY, 0.035);
+                }
+            }
                     f.grupo = null;
 
                     f.tamVisual =
                         f.tam;
                 }
 
+                    f.baseX = f.x;
+                    f.baseY = f.y;
 
                 this.figuraArrastrada =
                     null;
@@ -490,6 +533,10 @@ class Empatia {
                 this.grupoOrigen =
                     null;
             }
+        }
+
+        for (const figura of this.figuras) {
+            figura.tamVisual = lerp(figura.tamVisual, figura.tamObjetivo, 0.12);
         }
     }
 
@@ -499,64 +546,38 @@ class Empatia {
     // =========================================================
 
     dibujarFigura(f) {
-
-        let px =
-            this.x + f.x * this.w;
-
-        let py =
-            this.y + f.y * this.h;
-
-
-        // =====================================================
-        // USAMOS DIRECTAMENTE tamVisual
-        // =====================================================
-
-        let tam =
-            f.tamVisual;
-
-
-        // =====================================================
-        // MOVIMIENTO
-        // =====================================================
-
-        let despX =
-            sin(frameCount * 0.022 + f.offsetFase) * 2.5;
-
-        let despY =
-            cos(frameCount * 0.019 + f.offsetFase) * 2.5;
-
-
-        if (f.tipo === "C") {
-
-            despX +=
-                sin(frameCount * 0.03 + f.offsetFase) * 3.5;
-        }
-
-
-        if (f.tipo === "T") {
-
-            despY +=
-                sin(frameCount * 0.03 + f.offsetFase) * 3.5;
-        }
-
+        const px = this.x + f.x * this.w;
+        const py = this.y + f.y * this.h;
+        const tam = f.tamVisual;
 
         push();
-
-        translate(
-            px + despX,
-            py + despY
-        );
-
+        translate(px, py);
         noStroke();
 
+        if (f !== this.figuraArrastrada) {
+            translate(
+                sin(frameCount * 0.03 + f.fase) * 10,
+                cos(frameCount * 0.025 + f.fase) * 10
+            );
+        }
 
-        EfectoVisualGlobal.dibujar(
-            f,
-            f.tipo,
-            tam
-        );
+        if (f.tipo === "Q") {
+            rotate(frameCount * 0.012 + f.fase);
+        }
 
+        if (f.tipo === "T") {
+            translate(
+                sin(frameCount * 0.12 + f.fase) * 3.5,
+                cos(frameCount * 0.16 + f.fase) * 3.5
+            );
+            rotate(sin(frameCount * 0.28 + f.fase) * 0.025);
+        }
 
+        const escalaVisual = f.tipo === "C"
+            ? 1 + sin(frameCount * 0.032 + f.fase) * 0.16
+            : 1.06;
+        scale(escalaVisual);
+        EfectoVisualGlobal.dibujar(f, f.tipo, tam);
         pop();
     }
 

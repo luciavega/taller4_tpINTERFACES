@@ -6,7 +6,8 @@ class Expectativa {
         this.h = h;
         this.grupo = "futuro";
 
-        this.cellSize = constrain(min(w, h) * 0.07, 20, 48);
+        this.cellSize = constrain(min(w, h) * 0.06, 22, 38);
+        this.figureSpacing = this.cellSize * 2.8;
         this.dragging = null;
         this.completed = false;
         this.celebrationStart = 0;
@@ -25,11 +26,11 @@ class Expectativa {
             this.w / 2,
             this.w / 2 + separation
         ];
-        const step = this.cellSize * 1.7;
+        const step = this.figureSpacing;
         const layouts = [
-            [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]],
-            [[0, -0.9], [-0.8, 0.5], [0.8, 0.5]],
-            [[0, -1.1], [-0.95, -0.35], [0.95, -0.35], [-0.6, 0.8], [0.6, 0.8]]
+            [[-1, -1], [0, -1], [1, -1], [-1, 0], [0, 0], [1, 0], [-1, 1], [0, 1], [1, 1]],
+            [[0, -1], [-0.6, 0], [0.6, 0], [-1.2, 1], [0, 1], [1.2, 1]],
+            [[0, -1.1], [0.78, -0.78], [1.1, 0], [0.78, 0.78], [0, 1.1], [-0.78, 0.78], [-1.1, 0], [-0.78, -0.78]]
         ];
 
         this.groups = [
@@ -40,8 +41,11 @@ class Expectativa {
         this.figures = [];
         const impostors = {
             "0:2": { type: "C", targetGroupIndex: 2, targetSlotIndex: 1 },
+            "0:3": { type: "T", targetGroupIndex: 1, targetSlotIndex: 1 },
             "1:0": { type: "Q", targetGroupIndex: 0, targetSlotIndex: 2 },
-            "2:1": { type: "T", targetGroupIndex: 1, targetSlotIndex: 0 }
+            "1:1": { type: "C", targetGroupIndex: 2, targetSlotIndex: 2 },
+            "2:1": { type: "T", targetGroupIndex: 1, targetSlotIndex: 0 },
+            "2:2": { type: "Q", targetGroupIndex: 0, targetSlotIndex: 3 }
         };
 
         for (let groupIndex = 0; groupIndex < this.groups.length; groupIndex++) {
@@ -114,7 +118,7 @@ class Expectativa {
             if (!figure.visible) continue;
             push();
             translate(figure.x, figure.y);
-            scale(this.finalScale);
+            scale(1.15 * this.finalScale);
             this.drawCelebrationGlow(figure);
             EfectoVisualGlobal.dibujar(figure, figure.type, this.cellSize);
             pop();
@@ -152,7 +156,7 @@ class Expectativa {
             const figure = this.figures[index];
             if (!figure.visible) continue;
             if (!figure.draggable) continue;
-            if (dist(localX, localY, figure.x, figure.y) < this.cellSize * 0.85) {
+            if (dist(localX, localY, figure.x, figure.y) < this.cellSize * 1.25) {
                 this.dragging = figure;
                 return;
             }
@@ -165,9 +169,21 @@ class Expectativa {
         const figure = this.dragging;
         const localX = mouseX - this.x;
         const localY = mouseY - this.y;
-        const targetGroup = this.groups.find(group =>
-            dist(localX, localY, group.centerX, group.centerY) < this.cellSize * 3.1
-        );
+        const targetGroup = this.groups
+            .map(group => {
+                const distanciaAlCentro = dist(localX, localY, group.centerX, group.centerY);
+                const distanciaAlPatron = min(...group.slots.map(slot =>
+                    dist(
+                        localX,
+                        localY,
+                        group.centerX + slot[0] * this.figureSpacing,
+                        group.centerY + slot[1] * this.figureSpacing
+                    )
+                ));
+                return { group, distancia: min(distanciaAlCentro, distanciaAlPatron) };
+            })
+            .filter(item => item.distancia < this.cellSize * 4.2)
+            .sort((a, b) => a.distancia - b.distancia)[0]?.group || null;
         const targetGroupIndex = targetGroup ? this.groups.indexOf(targetGroup) : -1;
         const targetSlotIndex = figure.targetSlotIndex;
         const target = this.figures.find(item =>
@@ -184,12 +200,12 @@ class Expectativa {
 
             target.groupIndex = sourceGroupIndex;
             target.slotIndex = sourceSlotIndex;
-            target.homeX = this.groups[sourceGroupIndex].centerX + sourceSlot[0] * this.cellSize * 1.7;
-            target.homeY = this.groups[sourceGroupIndex].centerY + sourceSlot[1] * this.cellSize * 1.7;
+            target.homeX = this.groups[sourceGroupIndex].centerX + sourceSlot[0] * this.figureSpacing;
+            target.homeY = this.groups[sourceGroupIndex].centerY + sourceSlot[1] * this.figureSpacing;
             target.draggable = true;
 
-            figure.homeX = targetGroup.centerX + targetSlot[0] * this.cellSize * 1.7;
-            figure.homeY = targetGroup.centerY + targetSlot[1] * this.cellSize * 1.7;
+            figure.homeX = targetGroup.centerX + targetSlot[0] * this.figureSpacing;
+            figure.homeY = targetGroup.centerY + targetSlot[1] * this.figureSpacing;
             figure.groupIndex = targetGroupIndex;
             figure.slotIndex = targetSlotIndex;
             figure.draggable = false;

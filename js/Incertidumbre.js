@@ -1,5 +1,3 @@
-
-
 class Incertidumbre {
     constructor(x, y, w, h) {
         this.x = x;
@@ -28,8 +26,8 @@ class Incertidumbre {
                 centroY: 0.51,
                 principal: "Q",
                 intruso: "T",
-                intrusoDesplazamiento: this.crearPosicionesCirculares(0.12, 6)[0],
-                posiciones: this.crearPosicionesCirculares(0.12, 6).slice(1)
+                intrusoDesplazamiento: [-0.051, -0.13],
+                posiciones: [[0, -0.165], [0.06, -0.13], [0.075, 0], [0.06, 0.13], [0, 0.165], [-0.06, 0.13], [-0.075, 0]]
             },
             {
                 centroX: 0.805,
@@ -110,8 +108,10 @@ class Incertidumbre {
                 this.arrastrada.x = constrain((mouseX - this.x) / this.w, 0.04, 0.96);
                 this.arrastrada.y = constrain((mouseY - this.y) / this.h, 0.12, 0.92);
                 if (movimiento > 1.5) this.arrastrada.movio = true;
-                if (this.arrastrada.movio && !this.reagrupoDuranteArrastre &&
-                    this.estaCercaDeSuFormacion()) {
+                const cercaDeLaFormacion = this.estaCercaDeSuFormacion();
+                if (!cercaDeLaFormacion) this.reagrupoDuranteArrastre = false;
+                if (this.arrastrada.movio && this.arrastrada.interactuable &&
+                    cercaDeLaFormacion && !this.reagrupoDuranteArrastre) {
                     this.reagrupar();
                 }
             }
@@ -137,7 +137,7 @@ class Incertidumbre {
     iniciarArrastre() {
         const localX = mouseX - this.x;
         const localY = mouseY - this.y;
-        const candidatas = this.figuras.filter(figura => figura.arrastrable);
+        const candidatas = this.figuras.filter(figura => figura.arrastrable && figura.interactuable);
         for (let indice = candidatas.length - 1; indice >= 0; indice--) {
             const figura = candidatas[indice];
             if (dist(localX, localY, figura.x * this.w, figura.y * this.h) < this.tamano * 0.9) {
@@ -151,40 +151,55 @@ class Incertidumbre {
     }
 
     estaCercaDeSuFormacion() {
-        const grupoObjetivo = this.formaciones.findIndex(formacion => formacion.principal === this.arrastrada.tipo);
-        if (grupoObjetivo < 0) return false;
+        if (!this.esIntrusaActual()) return false;
+        const grupoObjetivo = this.obtenerGrupoPrincipal(this.arrastrada.tipo);
+        if (grupoObjetivo < 0 || grupoObjetivo === this.arrastrada.grupoFormacion) return false;
         const formacion = this.formaciones[grupoObjetivo];
-        return dist(this.arrastrada.x * this.w, this.arrastrada.y * this.h,
-            formacion.centroX * this.w, formacion.centroY * this.h) < this.tamano * 3.4;
+        const posicionesX = formacion.posiciones.map(posicion => posicion[0]);
+        const posicionesY = formacion.posiciones.map(posicion => posicion[1]);
+        const margenX = this.tamano * 1.5 / this.w;
+        const margenY = this.tamano * 1.5 / this.h;
+        const limiteIzquierdo = formacion.centroX + min(posicionesX) - margenX;
+        const limiteDerecho = formacion.centroX + max(posicionesX) + margenX;
+        const limiteSuperior = formacion.centroY + min(posicionesY) - margenY;
+        const limiteInferior = formacion.centroY + max(posicionesY) + margenY;
+        return this.arrastrada.x >= limiteIzquierdo && this.arrastrada.x <= limiteDerecho &&
+            this.arrastrada.y >= limiteSuperior && this.arrastrada.y <= limiteInferior;
+    }
+
+    obtenerGrupoPrincipal(tipo) {
+        return this.formaciones.findIndex(formacion => formacion.principal === tipo);
+    }
+
+    esIntrusaActual() {
+        return Boolean(this.arrastrada && this.arrastrada.interactuable);
     }
 
     reagrupar() {
         this.ultimaReagrupacion = millis();
         this.reagrupoDuranteArrastre = true;
+        const figuraArrastrada = this.arrastrada;
         const tiposAnteriores = this.formaciones.map(formacion => formacion.principal);
-        const tiposNuevos = shuffle(["C", "Q", "T"], true);
-        while (tiposNuevos.every((tipo, indice) => tipo === tiposAnteriores[indice])) {
-            shuffle(tiposNuevos, true);
+        let tiposNuevos = shuffle(["C", "Q", "T"], true);
+        while (tiposNuevos.every((tipo, indice) => tipo === tiposAnteriores[indice]) ||
+            tiposNuevos.some((tipo, indice) => tipo === this.formaciones[indice].intruso)) {
+            tiposNuevos = shuffle(["C", "Q", "T"], true);
         }
 
         for (let grupo = 0; grupo < this.formaciones.length; grupo++) {
             const formacion = this.formaciones[grupo];
-            const posiciones = shuffle(formacion.posiciones.slice(), true);
             formacion.principal = tiposNuevos[grupo];
-            formacion.intruso = tiposNuevos[(grupo + 1) % tiposNuevos.length];
             const principales = this.figuras.filter(figura => figura.grupoFormacion === grupo && !figura.interactuable);
             principales.forEach((figura, indice) => {
                 figura.tipo = formacion.principal;
                 figura.paleta = this.paletasPorTipo[figura.tipo];
                 EfectoVisualGlobal.configuraciones.delete(figura);
-                figura.objetivoX = formacion.centroX + posiciones[indice][0];
-                figura.objetivoY = formacion.centroY + posiciones[indice][1];
+                figura.objetivoX = formacion.centroX + formacion.posiciones[indice][0];
+                figura.objetivoY = formacion.centroY + formacion.posiciones[indice][1];
                 figura.escala = 1.14;
             });
             const intruso = this.figuras.find(figura => figura.grupoFormacion === grupo && figura.interactuable);
-            intruso.tipo = formacion.intruso;
-            intruso.paleta = this.paletasPorTipo[intruso.tipo];
-            EfectoVisualGlobal.configuraciones.delete(intruso);
+            if (intruso === figuraArrastrada) continue;
             intruso.objetivoX = formacion.centroX + formacion.intrusoDesplazamiento[0];
             intruso.objetivoY = formacion.centroY + formacion.intrusoDesplazamiento[1];
             intruso.escala = 1.14;

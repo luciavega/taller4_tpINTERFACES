@@ -62,7 +62,7 @@ class Herencia {
             fijadaAl100: false,
             impulsoInicio: 0,
             nacimientoInicio: 0,
-            nacimientoDuracion: 720,
+            nacimientoDuracion: 420,
             desvanecerDesde: Infinity
         };
     }
@@ -89,7 +89,7 @@ class Herencia {
         let mejor = null;
         let mejorEspacio = -Infinity;
 
-        for (let intento = 0; intento < 1400; intento++) {
+        for (let intento = 0; intento < 420; intento++) {
             const angulo = random(TWO_PI);
             const distancia = inicial
                 ? sqrt(random()) * distanciaMaxima
@@ -135,8 +135,6 @@ class Herencia {
     }
 
     crearDescendencia(figura) {
-        if (figura.hijos.length > 0) return;
-
         const tipoHijo = this.obtenerTipoHijo(figura.tipo);
         const tipoNieto = this.obtenerTipoHijo(tipoHijo);
         const ocupadas = this.figuras;
@@ -178,14 +176,14 @@ class Herencia {
         while (cola.length > 0) {
             const actual = cola.shift();
             const f = actual.figura;
-            const inicio = ahora + actual.profundidad * 140;
+            const inicio = ahora + actual.profundidad * 70;
 
             f.visible = true;
             f.activada = true;
             f.reavivada = true;
             f.impulsoInicio = inicio;
             f.targetOpacity = 255;
-            f.desvanecerDesde = f.fijadaAl100 ? Infinity : inicio + 900;
+            f.desvanecerDesde = f.fijadaAl100 ? Infinity : inicio + 600;
 
             if (f.generacion > 0 && !f.fijadaAl100) {
                 this.iniciarNacimiento(f, inicio);
@@ -239,13 +237,13 @@ class Herencia {
 
         this.actualizarNacimiento(figura, ahora);
         if (ahora >= figura.impulsoInicio) {
-            figura.alpha = lerp(figura.alpha, figura.targetOpacity, 0.12);
+            figura.alpha = lerp(figura.alpha, figura.targetOpacity, 0.22);
         }
 
         if (ahora >= figura.desvanecerDesde) {
             const opacidadResidual = figura.generacion === 0 ? 105 : figura.generacion === 1 ? 92 : 32;
             figura.targetOpacity = opacidadResidual;
-            figura.alpha = lerp(figura.alpha, figura.targetOpacity, 0.018);
+            figura.alpha = lerp(figura.alpha, figura.targetOpacity, 0.035);
         }
     }
 
@@ -328,6 +326,22 @@ class Herencia {
         noStroke();
         fill(34, 34, 34);
         rect(this.x, this.y, this.w, this.h);
+
+        const interaccionActiva = mouseIsPressed &&
+            mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h;
+        if (interaccionActiva) {
+            drawingContext.save();
+            drawingContext.globalAlpha = 0.24;
+            stroke(234, 139, 47, 125);
+            strokeWeight(1.2);
+            for (let indice = 0; indice < 90; indice++) {
+                const px = this.x + ((indice * 137 + frameCount * 0.7) % this.w);
+                const py = this.y + ((indice * 79 + frameCount * 0.35) % this.h);
+                line(px, py, px + 18, py - 12);
+            }
+            drawingContext.restore();
+        }
 
         for (let figura of this.figuras) {
             if (figura.visible) this.dibujarFigura(figura);

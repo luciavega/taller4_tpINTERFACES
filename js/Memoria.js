@@ -165,6 +165,22 @@ class Memoria {
         fill(34, 34, 34);
         rect(this.x, this.y, this.w, this.h);
 
+        const interaccionActiva = mouseIsPressed &&
+            mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h;
+        if (interaccionActiva) {
+            drawingContext.save();
+            drawingContext.globalAlpha = 0.24;
+            stroke(234, 139, 47, 125);
+            strokeWeight(1.2);
+            for (let indice = 0; indice < 90; indice++) {
+                const px = this.x + ((indice * 137 + frameCount * 0.7) % this.w);
+                const py = this.y + ((indice * 79 + frameCount * 0.35) % this.h);
+                line(px, py, px + 18, py - 12);
+            }
+            drawingContext.restore();
+        }
+
         // Figuras
         for (let f of this.figuras) {
             this.dibujarFigura(f);
